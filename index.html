@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Pushy Karts</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+        <script async type="importmap">
+          {
+            "imports": {
+              "three": "./lib/three.module150.js",
+              "orbitControls": "./lib/OrbitControls150.js"
+            }
+          }
+        </script>  
+        <style>
+            body {
+              color: #61443e;
+              font-family:Monospace;
+              font-size:13px;
+              text-align:center;
+
+              background-color: #bfd1e5;
+              margin: 0px;
+              overflow: hidden;
+            }
+            #speedometer {
+              color: #ffffff;
+              background-color: #990000;
+              position: absolute;
+              bottom: 0px;
+              padding: 5px;
+            }
+            #info {
+              position: absolute;
+              top: 0px; width: 100%;
+              padding: 5px;
+            }
+            a {
+              color: #a06851;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="container"><br /><br /><br /><br /><br />Loading...</div>
+<!-- 		    <div id="speedometer">0.0 km/h</div> -->
+        <div id="info">
+          Press &larr; &rarr; &uarr; &darr; to move red.<br>
+          Press W,A,S,D to move blue.
+        </div>
+
+		    <script src="./lib/ammo.js"></script>
+        <script type="module" src="./script.js"></script>
+    </body>
+</html>
