@@ -31,7 +31,7 @@ export default class Car {
   steeringIncrement = 0.04;
   steeringClamp = 0.5;
   maxEngineForce = 2000;
-  maxBreakingForce = 100;
+  maxBreakingForce = 200;//100;
   
   vehicle;
 
@@ -49,15 +49,19 @@ export default class Car {
         this.chassisLength * 0.5
       )
     );
+    
     const transform = new Ammo.btTransform();
     transform.setIdentity();
     transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
     transform.setRotation(
       new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
     );
+    
     const motionState = new Ammo.btDefaultMotionState(transform);
+    
     const localInertia = new Ammo.btVector3(0, 0, 0);
     geometry.calculateLocalInertia(this.massVehicle, localInertia);
+    
     const body = new Ammo.btRigidBody(
       new Ammo.btRigidBodyConstructionInfo(
         this.massVehicle,
@@ -66,6 +70,7 @@ export default class Car {
         localInertia
       )
     );
+    
     body.setActivationState(this.DISABLE_DEACTIVATION);
     this.physicsWorld.addRigidBody(body);
     this.chassisMesh = this.createChassisMesh(
