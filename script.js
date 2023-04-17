@@ -138,7 +138,7 @@ Ammo().then(function(Ammo) {
   
   function initAI() {
     const bounds = new THREE.Box3().setFromObject(platform);
-    const border = 10;
+    const border = 8;
     bounds.min.x += border;
     bounds.min.y = -100;
     bounds.min.z += border;

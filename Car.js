@@ -36,8 +36,9 @@ export default class Car {
   vehicle;
 
   constructor(pos, quat, scene, physicsWorld, materialInteractive) {
-    // Chassis
     
+    this.speed = 0;
+    // Chassis
     this.materialInteractive = materialInteractive;
     this.scene = scene;
     this.physicsWorld = physicsWorld;
@@ -201,7 +202,7 @@ export default class Car {
   sync(actions) {
     if(!this.vehicle)
       return;
-    const speed = this.vehicle.getCurrentSpeedKmHour();
+    this.speed = this.vehicle.getCurrentSpeedKmHour();
 
     // speedometer.innerHTML =
     //   (speed < 0 ? "(R) " : "") + Math.abs(speed).toFixed(1) + " km/h";
@@ -210,13 +211,13 @@ export default class Car {
     this.engineForce = 0;
 
     if (actions.acceleration) {
-      if (speed < -1) 
+      if (this.speed < -1) 
         this.breakingForce = this.maxBreakingForce;
       else 
         this.engineForce = this.maxEngineForce;
     }
     if (actions.braking) {
-      if (speed > 1) 
+      if (this.speed > 1) 
         this.breakingForce = this.maxBreakingForce;
       else 
         this.engineForce = -this.maxEngineForce / 2;
