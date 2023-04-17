@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 // import * as Ammo from 'ammo';
 import { OrbitControls } from 'orbitControls';
-import { EffectComposer } from './lib/postprocessing/EffectComposer.js';
-import { RenderPixelatedPass } from './lib/postprocessing/RenderPixelatedPass.js';
+// import { EffectComposer } from './lib/postprocessing/EffectComposer.js';
+// import { RenderPixelatedPass } from './lib/postprocessing/RenderPixelatedPass.js';
 import Car from './Car.js';
+import AIDriver from './AIDriver.js';
 
 Ammo().then(function(Ammo) {
 
@@ -50,7 +51,11 @@ Ammo().then(function(Ammo) {
     "ArrowRight":'right'
   };
 
-  let composer;
+  // let composer;
+  
+  const redBoxes = [];
+  const blueBoxes = [];
+  let platform, groundBox, redZone, blueZone, labelRed, labelBlue;
 
   // - Functions -
 
@@ -98,12 +103,12 @@ Ammo().then(function(Ammo) {
 
     container.appendChild( renderer.domElement );
 
-    composer = new EffectComposer( renderer );
-    const renderPixelatedPass = new RenderPixelatedPass( 3, scene, camera );
-    renderPixelatedPass.normalEdgeStrength = 0.2; 
-    renderPixelatedPass.depthEdgeStrength = 0.2; 
-    renderPixelatedPass.pixelAlignedPanning = true;
-    composer.addPass( renderPixelatedPass );
+    // composer = new EffectComposer( renderer );
+    // const renderPixelatedPass = new RenderPixelatedPass( 3, scene, camera );
+    // renderPixelatedPass.normalEdgeStrength = 0.2; 
+    // renderPixelatedPass.depthEdgeStrength = 0.2; 
+    // renderPixelatedPass.pixelAlignedPanning = true;
+    // composer.addPass( renderPixelatedPass );
 
     window.addEventListener( 'resize', onWindowResize, false );
     window.addEventListener( 'keydown', keydown);
@@ -116,7 +121,7 @@ Ammo().then(function(Ammo) {
     camera.updateProjectionMatrix();
 
     renderer.setSize( window.innerWidth, window.innerHeight );
-    composer.setSize( window.innerWidth, window.innerHeight );
+    // composer.setSize( window.innerWidth, window.innerHeight );
   }
 
   function initPhysics() {
@@ -128,6 +133,21 @@ Ammo().then(function(Ammo) {
     physicsWorld = new Ammo.btDiscreteDynamicsWorld( dispatcher, broadphase, solver, collisionConfiguration );
     physicsWorld.setGravity( new Ammo.btVector3( 0, -9.82, 0 ) );
   }
+  
+    const aiDrivers = [];
+  
+  function initAI() {
+    const bounds = new THREE.Box3().setFromObject(platform);
+    const border = 10;
+    bounds.min.x += border;
+    bounds.min.y = -100;
+    bounds.min.z += border;
+    bounds.max.x -= border;
+    bounds.max.y = 100;
+    bounds.max.z -= border;
+    aiDrivers.push(new AIDriver(carBlue, blueBoxes, bounds, blueZone.mesh));
+    aiDrivers.push(new AIDriver(carRed, redBoxes, bounds, redZone.mesh));
+  }
 
   let carRed, carBlue, blueScore = 0, redScore = 0;
   
@@ -136,6 +156,13 @@ Ammo().then(function(Ammo) {
     var dt = clock.getDelta();
     for (var i = 0; i < syncList.length; i++)
       syncList[i](dt);
+    
+    aiDrivers.forEach(ai => { ai.step() });
+    if(aiDrivers[0])
+      actionsBlue = aiDrivers[0].actions;
+    if(aiDrivers[1])
+      actionsRed = aiDrivers[1].actions;
+            
     if(carBlue)
       carBlue.sync(actionsBlue);
     if(carRed)
@@ -265,15 +292,31 @@ Ammo().then(function(Ammo) {
     
     return box;
   }
-
-  const redBoxes = [];
-  const blueBoxes = [];
-  let redZone, blueZone, labelRed, labelBlue;
   
   
   function createObjects() {
 
-    const groundBox = createBox(new THREE.Vector3(0, -0.5, 0), ZERO_QUATERNION, 50, 1, 50, 0, 2);
+    groundBox = createBox(new THREE.Vector3(0, -0.5, 0), ZERO_QUATERNION, 50, 1, 50, 0, 2);
+    
+    blueZone = createBox(new THREE.Vector3(12.5, -0.5, 37.5), ZERO_QUATERNION, 25, 1, 25, 0, 2, new THREE.MeshPhongMaterial( { color:0x000088 } ));
+    labelBlue = getLabel(0, 'white', 256)
+    labelBlue.position.x = blueZone.mesh.position.x;
+    labelBlue.position.y = 0.1;
+    labelBlue.position.z = blueZone.mesh.position.z;
+    scene.add(labelBlue);
+    
+    redZone = createBox(new THREE.Vector3(-12.5, -0.5, 37.5), ZERO_QUATERNION, 25, 1, 25, 0, 2, new THREE.MeshPhongMaterial( { color:0x880000 } ));
+    labelRed = getLabel(0, 'white', 256)
+    labelRed.position.x = redZone.mesh.position.x;
+    labelRed.position.y = 0.1;
+    labelRed.position.z = redZone.mesh.position.z;
+    scene.add(labelRed);
+    
+    platform = new THREE.Group();
+    platform.add(groundBox.mesh);
+    platform.add(redZone.mesh);
+    platform.add(blueZone.mesh);
+    scene.add(platform);
     
     var quaternion = new THREE.Quaternion(0, 0, 0, 1);
     quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 18);
@@ -294,20 +337,6 @@ Ammo().then(function(Ammo) {
           redBoxes.push(box.mesh);
       }
     }
-    
-    blueZone = createBox(new THREE.Vector3(12.5, -0.5, 37.5), ZERO_QUATERNION, 25, 1, 25, 0, 2, materialBlue);  
-    labelBlue = getLabel(0, 'white', 256)
-    labelBlue.position.x = blueZone.mesh.position.x;
-    labelBlue.position.y = 0.1;
-    labelBlue.position.z = blueZone.mesh.position.z;
-    scene.add(labelBlue); 
-    
-    redZone = createBox(new THREE.Vector3(-12.5, -0.5, 37.5), ZERO_QUATERNION, 25, 1, 25, 0, 2, materialRed);
-    labelRed = getLabel(0, 'white', 256)
-    labelRed.position.x = redZone.mesh.position.x;
-    labelRed.position.y = 0.1;
-    labelRed.position.z = redZone.mesh.position.z;
-    scene.add(labelRed);
     
     try {
       carBlue = new Car(new THREE.Vector3(-2, 4, -15), ZERO_QUATERNION, scene, physicsWorld, materialBlue);
@@ -350,6 +379,6 @@ Ammo().then(function(Ammo) {
   initGraphics();
   initPhysics();
   createObjects();
+  // initAI();
   tick();
-
 });
