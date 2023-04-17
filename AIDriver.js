@@ -26,6 +26,7 @@ export default class AIDriver {
   }
 
   step() {
+    this.actions = {};
     if(this.state === this.STATES.seeking)
       this.seek();
     else if(this.state === this.STATES.pushing)
@@ -39,21 +40,28 @@ export default class AIDriver {
   seek() {
     if(!this.target)
       this.target = this.getTarget();
-    if(!this.checkBounds())
+    
+    if(!this.checkBounds()) {
       this.stop();
-    else if(this.cPos.distanceTo(this.target.position) > 5) {
+      return;
+    }
+    
+    if(this.cPos.distanceTo(this.target.position) > 5) {
       
-      const angleToTarget = (this.cPos.angleTo(this.target.position) - this.cRot.z) / Math.PI * 180;
+      // console.log(this.cPos.angleTo(this.target.position))
+      
+      const angleToTarget = this.cPos.angleTo(this.target.position) + this.cRot.z;
+      const minAngle = Math.PI / 18;
       
       // console.log({1: this.cRot.z / Math.PI * 180})
       // console.log({2: angleToTarget})
       
-      if(angleToTarget > 30)
+      if(angleToTarget > minAngle)
         this.goLeft();
-      else if(angleToTarget < 30)
+      else if(angleToTarget < -minAngle)
         this.goRight();
       else
-        go();
+        this.go();
     }
     else
       this.stop();
@@ -70,8 +78,10 @@ export default class AIDriver {
   }
 
   stop() {
-    if(this.car.speed > 0)
-      this.actions = {'braking': true };
+    if(this.car.speed > 0.1)
+      this.reverse();
+    else if(this.car.speed < -0.1)
+      this.go();
   }
   
   reverse() {
