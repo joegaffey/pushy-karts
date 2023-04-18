@@ -50,15 +50,19 @@ export default class AIDriver {
       
       // console.log(this.cPos.angleTo(this.target.position))
       
-      const angleToTarget = this.cPos.angleTo(this.target.position) + this.cRot.z;
+      const angleToTarget = this.cPos.angleTo(this.target.position);
       const minAngle = Math.PI / 18;
       
       // console.log({1: this.cRot.z / Math.PI * 180})
       // console.log({2: angleToTarget})
       
-      if(angleToTarget > minAngle)
+      const carAngle = this.cRot.z + Math.PI;
+      
+      console.log({'target': angleToTarget / Math.PI * 180, 'car': carAngle / Math.PI * 180})
+      
+      if(carAngle - angleToTarget < minAngle)
         this.goLeft();
-      else if(angleToTarget < -minAngle)
+      else if(carAngle - angleToTarget > minAngle)
         this.goRight();
       else
         this.go();
@@ -93,6 +97,7 @@ export default class AIDriver {
   }
   
   goLeft() {
+    console.log('left')
     this.actions = {
       'acceleration': true,
       'left': true
@@ -100,6 +105,7 @@ export default class AIDriver {
   }
   
   goRight() {
+    console.log('right')
     this.actions = {
       'acceleration': true,
       'right': true
