@@ -5,6 +5,7 @@ import { OrbitControls } from 'orbitControls';
 // import { RenderPixelatedPass } from './lib/postprocessing/RenderPixelatedPass.js';
 import Car from './Car.js';
 import AIDriver from './AIDriver.js';
+import Player from './Player.js';
 
 Ammo().then(function(Ammo) {
 
@@ -50,11 +51,13 @@ Ammo().then(function(Ammo) {
     "ArrowLeft":'left',
     "ArrowRight":'right'
   };
-
-  // let composer;
   
+  const players = [];
+  const aiDrivers = [];
   const redBoxes = [];
   const blueBoxes = [];
+  
+  let carRed, carBlue, blueScore = 0, redScore = 0;
   let platform, groundBox, redZone, blueZone, labelRed, labelBlue;
 
   // - Functions -
@@ -103,13 +106,6 @@ Ammo().then(function(Ammo) {
 
     container.appendChild( renderer.domElement );
 
-    // composer = new EffectComposer( renderer );
-    // const renderPixelatedPass = new RenderPixelatedPass( 3, scene, camera );
-    // renderPixelatedPass.normalEdgeStrength = 0.2; 
-    // renderPixelatedPass.depthEdgeStrength = 0.2; 
-    // renderPixelatedPass.pixelAlignedPanning = true;
-    // composer.addPass( renderPixelatedPass );
-
     window.addEventListener( 'resize', onWindowResize, false );
     window.addEventListener( 'keydown', keydown);
     window.addEventListener( 'keyup', keyup);
@@ -121,9 +117,8 @@ Ammo().then(function(Ammo) {
     camera.updateProjectionMatrix();
 
     renderer.setSize( window.innerWidth, window.innerHeight );
-    // composer.setSize( window.innerWidth, window.innerHeight );
   }
-
+  
   function initPhysics() {
     // Physics configuration
     collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
@@ -132,11 +127,9 @@ Ammo().then(function(Ammo) {
     solver = new Ammo.btSequentialImpulseConstraintSolver();
     physicsWorld = new Ammo.btDiscreteDynamicsWorld( dispatcher, broadphase, solver, collisionConfiguration );
     physicsWorld.setGravity( new Ammo.btVector3( 0, -9.82, 0 ) );
-  }
+  }  
   
-    const aiDrivers = [];
-  
-  function initAI() {
+  function initAI(red, blue) {
     const bounds = new THREE.Box3().setFromObject(platform);
     const border = 8;
     bounds.min.x += border;
@@ -145,11 +138,18 @@ Ammo().then(function(Ammo) {
     bounds.max.x -= border;
     bounds.max.y = 100;
     bounds.max.z -= border;
-    aiDrivers.push(new AIDriver(carBlue, blueBoxes, bounds, blueZone.mesh));
-    aiDrivers.push(new AIDriver(carRed, redBoxes, bounds, redZone.mesh));
+    if(blue)
+      aiDrivers.push(new AIDriver(carBlue, blueBoxes, bounds, blueZone.mesh));
+    if(red)
+      aiDrivers.push(new AIDriver(carRed, redBoxes, bounds, redZone.mesh));
   }
-
-  let carRed, carBlue, blueScore = 0, redScore = 0;
+  
+  function initPlayers(red, blue) {
+    if(blue)
+      players.push(new Player(carBlue, keysActionsBlue));
+    if(red)
+      players.push(new Player(carRed, keysActionsRed));
+  }
   
   function tick() {
     requestAnimationFrame( tick );
@@ -162,11 +162,15 @@ Ammo().then(function(Ammo) {
       actionsBlue = aiDrivers[0].actions;
     if(aiDrivers[1])
       actionsRed = aiDrivers[1].actions;
-            
-    if(carBlue)
-      carBlue.sync(actionsBlue);
-    if(carRed)
-      carRed.sync(actionsRed);
+    
+    players.forEach(p => {
+      p.car.sync(p.actions);
+    });
+    
+    aiDrivers.forEach(ai => {
+      ai.car.sync(ai.actions);
+    });
+    
     physicsWorld.stepSimulation( dt, 10 );
     controls.update( dt );
 
@@ -186,7 +190,6 @@ Ammo().then(function(Ammo) {
     // camera.lookAt(center);
     
     renderer.render( scene, camera );
-    // composer.render();
     time += dt;
   }
   
@@ -210,32 +213,15 @@ Ammo().then(function(Ammo) {
   }
 
   function keyup(e) {
-    if(keysActionsBlue[e.code]) {
-      actionsBlue[keysActionsBlue[e.code]] = false;
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-    if(keysActionsRed[e.code]) {
-      actionsRed[keysActionsRed[e.code]] = false;
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
+    players.forEach(p => {
+      p.keyUp(e);
+    });
   }
+  
   function keydown(e) {
-    if(keysActionsBlue[e.code]) {
-      actionsBlue[keysActionsBlue[e.code]] = true;
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-    if(keysActionsRed[e.code]) {
-      actionsRed[keysActionsRed[e.code]] = true;
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
+    players.forEach(p => {
+      p.keyDown(e);
+    });
   }
 
   function createBox(pos, quat, w, l, h, mass, friction, material) {
@@ -379,6 +365,7 @@ Ammo().then(function(Ammo) {
   initGraphics();
   initPhysics();
   createObjects();
-  // initAI();
+  initPlayers(true, true);
+  // initAI(true, true);
   tick();
 });
