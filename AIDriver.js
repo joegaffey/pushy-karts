@@ -1,19 +1,14 @@
 import Car from './Car.js';
 
 export default class AIDriver {
-  actions = {
-    'acceleration': false,
-    'braking': false,
-    'left': false,
-    'right': false
-  }
+  actions = {};
   
   STATES = {
     seeking: 'seeking',
     pushing: 'pushing',
     defending: 'defending',
     attacking: 'attacking'
-  }
+  };
   
   constructor(car, boxes, bounds, zone) {
     this.state = this.STATES.seeking;
@@ -58,7 +53,7 @@ export default class AIDriver {
       
       const carAngle = this.cRot.z + Math.PI;
       
-      console.log({'target': angleToTarget / Math.PI * 180, 'car': carAngle / Math.PI * 180})
+      // console.log({'target': angleToTarget / Math.PI * 180, 'car': carAngle / Math.PI * 180})
       
       if(carAngle - angleToTarget < minAngle)
         this.goLeft();
@@ -97,7 +92,7 @@ export default class AIDriver {
   }
   
   goLeft() {
-    console.log('left')
+    // console.log('left')
     this.actions = {
       'acceleration': true,
       'left': true
@@ -105,7 +100,7 @@ export default class AIDriver {
   }
   
   goRight() {
-    console.log('right')
+    // console.log('right')
     this.actions = {
       'acceleration': true,
       'right': true
