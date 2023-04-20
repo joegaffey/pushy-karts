@@ -47,14 +47,14 @@ Ammo().then(function(Ammo) {
     }, 
     {
       "KeyI":'acceleration',
-      "KeyJ":'braking',
-      "KeyK":'left',
+      "KeyK":'braking',
+      "KeyJ":'left',
       "KeyL":'right'
     }, 
     {
       "Numpad5":'acceleration',
-      "Numpad1":'braking',
-      "Numpad2":'left',
+      "Numpad2":'braking',
+      "Numpad1":'left',
       "Numpad3":'right'
     }
   ];
@@ -62,7 +62,9 @@ Ammo().then(function(Ammo) {
   const players = [];
   const aiDrivers = [];
   const cars = [];
-  const colors = [0x000099, 0x990000, 0x009900,  0x990099]; 
+  // const colors = [0x000099, 0x990000, 0x009900,  0x990099]; 
+  
+   const colors = ['#000099', '#990000', '#009900',  '#990099']; 
   
   let platform, groundBox;
 
@@ -366,12 +368,22 @@ Ammo().then(function(Ammo) {
     
     return new THREE.CanvasTexture(canvas);
   }
+  
+  function initInfo() {
+    let text = '';
+    cars.forEach((car, i) => {
+      text += `<div style="color:${car.color};">${Object.keys(keyActions[i])}</div>\n`;
+    });
+    document.querySelector('#info').innerHTML = text;    
+  }
 
   // - Init -
   initGraphics();
   initPhysics();
-  initCars([colors[0], colors[1]]);
-  // initCars(colors);
+  // initCars([colors[0]]);
+  // initCars([colors[0], colors[1]]);
+  initCars(colors);
+  initInfo();
   initPlatform();
   initBoxes(8, 6);
   initPlayers(cars);
