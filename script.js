@@ -17,7 +17,7 @@ Ammo().then(function(Ammo) {
   var camera, controls, scene, renderer;
   var terrainMesh, texture;
   var clock = new THREE.Clock();
-  var materialDynamic, materialStatic, materialRed, materialBlue;
+  var materialDynamic, materialStatic;
 
   // Physics variables
   var collisionConfiguration;
@@ -38,25 +38,33 @@ Ammo().then(function(Ammo) {
       "KeyS":'braking',
       "KeyA":'left',
       "KeyD":'right'
-    }, {
+    }, 
+    {
       "ArrowUp":'acceleration',
       "ArrowDown":'braking',
       "ArrowLeft":'left',
       "ArrowRight":'right'
+    }, 
+    {
+      "KeyI":'acceleration',
+      "KeyJ":'braking',
+      "KeyK":'left',
+      "KeyL":'right'
+    }, 
+    {
+      "Numpad5":'acceleration',
+      "Numpad1":'braking',
+      "Numpad2":'left',
+      "Numpad3":'right'
     }
   ];
   
   const players = [];
   const aiDrivers = [];
-  const redBoxes = [];
-  const blueBoxes = [];
   const cars = [];
-  const zones = [];
+  const colors = [0x000099, 0x990000, 0x009900,  0x990099]; 
   
-  let blueScore = 0, redScore = 0;
   let platform, groundBox;
-
-  // - Functions -
 
   function initGraphics() {
 
@@ -94,8 +102,6 @@ Ammo().then(function(Ammo) {
 
     materialDynamic = new THREE.MeshPhongMaterial( { color:0xfca400 } );
     materialStatic = new THREE.MeshPhongMaterial( { color:0x999999 } );
-    materialRed = new THREE.MeshPhongMaterial( { color:0x990000 } );
-    materialBlue = new THREE.MeshPhongMaterial( { color:0x000099 } );
 
     container.innerHTML = "";
 
@@ -124,7 +130,7 @@ Ammo().then(function(Ammo) {
     physicsWorld.setGravity( new Ammo.btVector3( 0, -9.82, 0 ) );
   }  
   
-  function initAI(red, blue) {
+  function initAI(aiCars) {
     const bounds = new THREE.Box3().setFromObject(platform);
     const border = 8;
     bounds.min.x += border;
@@ -134,43 +140,27 @@ Ammo().then(function(Ammo) {
     bounds.max.y = 100;
     bounds.max.z -= border;
       
-    if(blue)
-      aiDrivers.push(new AIDriver(cars[0], blueBoxes, bounds, zones[0].mesh));
-    if(red)
-      aiDrivers.push(new AIDriver(cars[1], redBoxes, bounds, zones[1].mesh));   
+    aiCars.forEach((car, i) => {
+      console.log(bounds)
+      aiDrivers.push(new AIDriver(car, bounds));
+    });
   }
-
-//   function initAI(cars) {
-//     const bounds = new THREE.Box3().setFromObject(platform);
-//     const border = 8;
-//     bounds.min.x += border;
-//     bounds.min.y = -100;
-//     bounds.min.z += border;
-//     bounds.max.x -= border;
-//     bounds.max.y = 100;
-//     bounds.max.z -= border;
-//     
-//     cars.forEach(car => {
-//       aiDrivers.push(new AIDriver(car, [], bounds, null));
-//       cars.push(car);
-//     });
-//   }   
   
-  function initCars(colors) {  
-    colors.forEach((c, i) => {
-      const material = new THREE.MeshPhongMaterial( { color: c } );
-      const xPos = colors.length * -1 + i * 4;
-      const car = new Car(new THREE.Vector3(xPos, 4, -15), ZERO_QUATERNION, scene, physicsWorld, material);
+  function initCars(cColors) {
+    const xStart = cColors.length * 2;
+    cColors.forEach((c, i) => {
+      const material = new THREE.MeshPhongMaterial({color: c});
+      const xPos = xStart + ((i + 0.5) * -4);
+      const car = new Car(new THREE.Vector3(xPos, 4, -16), ZERO_QUATERNION, scene, physicsWorld, material);
       car.color = c;
       cars.push(car);
     });
   }
 
-  function initPlayers(red, blue) {
-    if(blue)
-      players.push(new Player(cars[0], keyActions[0]));
-    if(red)
-      players.push(new Player(cars[1], keyActions[1]));
+  function initPlayers(pCars) {
+    pCars.forEach((car, i) => {
+      players.push(new Player(car, keyActions[i]));
+    });
   }
   
   function tick() {
@@ -190,19 +180,20 @@ Ammo().then(function(Ammo) {
     physicsWorld.stepSimulation( dt, 10 );
     controls.update( dt );
 
-    let newBlueScore = getObjectsInsideCount(zones[0].mesh, blueBoxes);
-    let newRedScore = getObjectsInsideCount(zones[1].mesh, redBoxes);
-    if(newBlueScore !== blueScore) {
-      blueScore = newBlueScore;
-      zones[0].label.material.map = getTextTexture(newBlueScore, 'white', 256, 276, 256);
-    }
-    if(newRedScore !== redScore) {
-      redScore = newRedScore;
-      zones[1].label.material.map = getTextTexture(newRedScore, 'white', 256, 276, 256);
-    }
+    cars.forEach(car => {
+      let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes);
+      if(newScore !== car.score) {
+        car.score = newScore;
+        car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
+      }
+    });
     
-    // const center = new THREE.Vector3();
-    // center.addVectors(car1.chassisMesh.position, car2.chassisMesh.position).multiplyScalar(0.5);
+    // Attempt at a dynamic multi-tracking camera
+    // const center = cars[0].chassisMesh.position;
+    // cars.forEach((car, i) => {
+    //   if(i > 0)
+    //     center.addVectors(center, car.chassisMesh.position).multiplyScalar(0.5);
+    // });
     // camera.lookAt(center);
     
     renderer.render( scene, camera );
@@ -293,48 +284,56 @@ Ammo().then(function(Ammo) {
     return box;
   }
   
-  function createPlatform() {
-    groundBox = createBox(new THREE.Vector3(0, -0.5, 0), ZERO_QUATERNION, 50, 1, 50, 0, 2);
+  function initPlatform() {
     
-    createZone(12.5, 37.5, 25, 25, 0x000088);
-    createZone(-12.5, 37.5, 25, 25, 0x880000);
-    
-    platform = new THREE.Group();
-    platform.add(groundBox.mesh);
-    platform.add(zones[0].mesh);
-    platform.add(zones[1].mesh);
-    scene.add(platform);
+    const platformWidth = 50;
+    const platformLength = 50;
+    groundBox = createBox(new THREE.Vector3(0, -0.5, 0), ZERO_QUATERNION, platformWidth, 1, platformLength, 0, 2);
     
     var quaternion = new THREE.Quaternion(0, 0, 0, 1);
     quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 18);
     const rampBox = createBox(new THREE.Vector3(0, 0.5, 0), quaternion, 8, 0.5, 10, 0);
+    
+    platform = new THREE.Group();
+    platform.add(groundBox.mesh);
+    
+    const zoneWidth = platformWidth / cars.length;
+    const zoneLength = 25;
+    const zonesWidth = cars.length * zoneWidth;
+    const xCenter = zonesWidth / 2 + zoneWidth / 2;
+    const zCenter = 37.5;
+    const start = xCenter - zonesWidth;
+    
+    cars.forEach((car, i) => {  
+      car.zone = createZone(start + i * zoneWidth, zCenter, zoneWidth, zoneLength, car.color);
+      platform.add(car.zone.mesh);
+    });
+    
+    scene.add(platform);
   }
   
   function createZone(x, z, width, length, color) {
-    const zone = createBox(new THREE.Vector3(x, -0.5, z), ZERO_QUATERNION, width, 1, length, 0, 2, new THREE.MeshPhongMaterial( { color: color } ));
-    zone.label = getLabel(0, 'white', 256)
+    const material = new THREE.MeshPhongMaterial({color: color});
+    material.transparent = true;
+    material.opacity = 0.82;
+    const zone = createBox(new THREE.Vector3(x, -0.5, z), ZERO_QUATERNION, width, 1, length, 0, 2, material);
+    zone.label = getLabel(0, 0xFFFFFF, 256);
     zone.label.position.x = zone.mesh.position.x;
     zone.label.position.y = 0.1;
     zone.label.position.z = zone.mesh.position.z;
     scene.add(zone.label);
-    zones.push(zone);
     return zone;
   }
   
-  function createBoxes() {
-    var size = .75;
-    var nw = 8;
-    var nh = 6;
-    for (var j = 0; j < nw; j++) {
-      for (var i = 0; i < nh; i++) {
-        let material = materialRed;
-        if(j % 2)
-          material = materialBlue;
+  function initBoxes(nw, nh) {
+    const size = .75;
+    
+    for (let j = 0; j < nw; j++) {
+      for (let i = 0; i < nh; i++) {
+        let car = cars[j % cars.length];
+        let material = car.chassisMesh.material;
         const box = createBox(new THREE.Vector3(size * j - (size * (nw - 1)) / 2, size * i, 10), ZERO_QUATERNION, size, size, size, 10, null, material);
-        if(j % 2)
-          blueBoxes.push(box.mesh);
-        else 
-          redBoxes.push(box.mesh);
+        car.boxes.push(box.mesh);
       }
     }
   }
@@ -371,11 +370,11 @@ Ammo().then(function(Ammo) {
   // - Init -
   initGraphics();
   initPhysics();
-  createPlatform();
-  createBoxes();
-  initCars([0x000099, 0x990000]);
-  initPlayers(true, true);
-  // initAI([materialRed, materialBlue]);
-  // initAI(true, true);
+  initCars([colors[0], colors[1]]);
+  // initCars(colors);
+  initPlatform();
+  initBoxes(8, 6);
+  initPlayers(cars);
+  // initAI(cars);
   tick();
 });

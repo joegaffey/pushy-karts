@@ -10,12 +10,10 @@ export default class AIDriver {
     attacking: 'attacking'
   };
   
-  constructor(car, boxes, bounds, zone) {
+  constructor(car, bounds) {
     this.state = this.STATES.seeking;
     this.car = car;
-    this.boxes = boxes;
     this.bounds = bounds;
-    this.zone = zone;
     this.cPos = this.car.chassisMesh.position;
     this.cRot = this.car.chassisMesh.rotation;
   }
@@ -73,7 +71,7 @@ export default class AIDriver {
   }
 
   getTarget() {
-    return this.zone;
+    return this.car.zone.mesh;
   }
 
   stop() {
