@@ -64,9 +64,10 @@ Ammo().then(function(Ammo) {
   const cars = [];
   // const colors = [0x000099, 0x990000, 0x009900,  0x990099]; 
   
-   const colors = ['#000099', '#990000', '#009900',  '#990099']; 
+  const colors = ['#000099', '#990000', '#009900',  '#990099']; 
   
   let platform, groundBox;
+  let carBodies;
 
   function initGraphics() {
 
@@ -149,14 +150,17 @@ Ammo().then(function(Ammo) {
   }
   
   function initCars(cColors) {
+    carBodies = new THREE.Group();
     const xStart = cColors.length * 2;
     cColors.forEach((c, i) => {
       const material = new THREE.MeshPhongMaterial({color: c});
       const xPos = xStart + ((i + 0.5) * -4);
       const car = new Car(new THREE.Vector3(xPos, 4, -16), ZERO_QUATERNION, scene, physicsWorld, material);
       car.color = c;
+      carBodies.add(car.chassisMesh);
       cars.push(car);
     });
+    scene.add(carBodies);
   }
 
   function initPlayers(pCars) {
@@ -190,13 +194,7 @@ Ammo().then(function(Ammo) {
       }
     });
     
-    // Attempt at a dynamic multi-tracking camera
-    // const center = cars[0].chassisMesh.position;
-    // cars.forEach((car, i) => {
-    //   if(i > 0)
-    //     center.addVectors(center, car.chassisMesh.position).multiplyScalar(0.5);
-    // });
-    // camera.lookAt(center);
+    // camera.lookAt(getCenterPoint(carBodies));
     
     renderer.render( scene, camera );
     time += dt;
@@ -216,8 +214,8 @@ Ammo().then(function(Ammo) {
   
   function getCenterPoint(object) {
     var center = new THREE.Vector3();
-    object.boundingBox.getCenter( center );
-    object.localToWorld( center );
+    new THREE.Box3().setFromObject(object).getCenter(center);
+    // object.localToWorld(center);
     return center;
   }
 
@@ -305,7 +303,7 @@ Ammo().then(function(Ammo) {
     const xCenter = zonesWidth / 2 + zoneWidth / 2;
     const zCenter = 37.5;
     const start = xCenter - zonesWidth;
-    
+
     cars.forEach((car, i) => {  
       car.zone = createZone(start + i * zoneWidth, zCenter, zoneWidth, zoneLength, car.color);
       platform.add(car.zone.mesh);
