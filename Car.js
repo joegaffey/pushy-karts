@@ -34,6 +34,8 @@ export default class Car {
   maxBreakingForce = 200;//100;
   
   vehicle;
+  
+  boxes = [];
 
   constructor(pos, quat, scene, physicsWorld, materialInteractive) {
     
