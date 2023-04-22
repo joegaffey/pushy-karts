@@ -30,13 +30,14 @@
         margin: 0px;
         overflow: hidden;
       }
+      /*       
       #speedometer {
         color: #ffffff;
         background-color: #990000;
         position: absolute;
         bottom: 0px;
         padding: 5px;
-      }
+      } */
       #info {
         position: absolute;
         top: 0px;
@@ -49,10 +50,52 @@
     </style>
   </head>
   <body>
-    <div id="container">Loading...</div>
-    <!-- <div id="speedometer">0.0 km/h</div> -->
     <div id="info"></div>
-
+    <dialog id="startDialog" open>
+      <header>
+        <h3>Pushy Karts</h3>
+        <p>Get your boxes into your zone before the other players!</p>
+      </header>
+      <section>
+        <p>Pick a level</p>
+        <p>
+          <label class="radio-inline">
+            <input type="radio" name="optLevel" data-index="0" checked>1
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="optLevel" data-index="1">2
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="optLevel" data-index="2">3
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="optLevel" data-index="3">4
+          </label>
+        </p>
+        <p>How many karts?</p>
+        <p>    
+          <label class="radio-inline">
+            <input type="radio" name="optCars" data-index="1" >1
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="optCars" data-index="2">2
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="optCars" data-index="3">3
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="optCars" data-index="4" checked>4
+          </label>
+        </p>
+      </section>
+      <footer>
+        <form method="dialog">
+          <button onclick="start()">Go!</button>
+        </form>
+      </footer>
+    </dialog>
+    <div id="container"></div>
+    <!-- <div id="speedometer">0.0 km/h</div> -->
     <script src="./lib/ammo.js"></script>
     <script type="module" src="./script.js"></script>
   </body>

@@ -63,12 +63,10 @@ Ammo().then(function(Ammo) {
   const players = [];
   const aiDrivers = [];
   const cars = [];
-  // const colors = [0x000099, 0x990000, 0x009900,  0x990099]; 
-  
-   const colors = ['#000099', '#990000', '#009900',  '#990099']; 
+  let colors = ['#000099', '#990000', '#009900',  '#990099']; 
   
   let platform, groundBox;
-
+  
   function initGraphics() {
 
     container = document.getElementById( 'container' );
@@ -400,14 +398,9 @@ Ammo().then(function(Ammo) {
     //@TODO
   }
 
-  const level = levels[1];
-  
   function init() {
     initGraphics();
     initPhysics();
-    // initCars([colors[0]]);
-    // initCars([colors[0], colors[1]]);
-    // initCars([colors[0], colors[1], colors[2]]);
     initCars(colors);
     initInfo();
     initPlatform();
@@ -418,5 +411,13 @@ Ammo().then(function(Ammo) {
     tick();
   }
   
-  init();
+  let level = levels[0];
+  
+  window.start = () => {
+    const levelSelected = document.querySelector('input[name="optLevel"]:checked').dataset.index;
+    const carsSelected = document.querySelector('input[name="optCars"]:checked').dataset.index;
+    level = levels[levelSelected];
+    colors = colors.slice(0, carsSelected);
+    init();
+  }  
 });
