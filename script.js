@@ -4,6 +4,7 @@ import { OrbitControls } from 'orbitControls';
 import Car from './Car.js';
 import AIDriver from './AIDriver.js';
 import Player from './Player.js';
+import levels from './levels.js';
 
 Ammo().then(function(Ammo) {
 
@@ -31,7 +32,7 @@ Ammo().then(function(Ammo) {
   var objectTimePeriod = 3;
   var timeNextSpawn = time + objectTimePeriod;
   var maxNumObjects = 30;
-
+  
   // Keybord actions
   const keyActions = [ {
       "KeyW":'acceleration',
@@ -64,10 +65,9 @@ Ammo().then(function(Ammo) {
   const cars = [];
   // const colors = [0x000099, 0x990000, 0x009900,  0x990099]; 
   
-  const colors = ['#000099', '#990000', '#009900',  '#990099']; 
+   const colors = ['#000099', '#990000', '#009900',  '#990099']; 
   
   let platform, groundBox;
-  let carBodies;
 
   function initGraphics() {
 
@@ -150,17 +150,15 @@ Ammo().then(function(Ammo) {
   }
   
   function initCars(cColors) {
-    carBodies = new THREE.Group();
+    const lPos = level.cars.position;
     const xStart = cColors.length * 2;
     cColors.forEach((c, i) => {
       const material = new THREE.MeshPhongMaterial({color: c});
       const xPos = xStart + ((i + 0.5) * -4);
-      const car = new Car(new THREE.Vector3(xPos, 4, -16), ZERO_QUATERNION, scene, physicsWorld, material);
+      const car = new Car(new THREE.Vector3(lPos.x + xPos, lPos.y + 4, lPos.z), ZERO_QUATERNION, scene, physicsWorld, material);
       car.color = c;
-      carBodies.add(car.chassisMesh);
       cars.push(car);
     });
-    scene.add(carBodies);
   }
 
   function initPlayers(pCars) {
@@ -194,7 +192,13 @@ Ammo().then(function(Ammo) {
       }
     });
     
-    // camera.lookAt(getCenterPoint(carBodies));
+    // Attempt at a dynamic multi-tracking camera
+    // const center = cars[0].chassisMesh.position;
+    // cars.forEach((car, i) => {
+    //   if(i > 0)
+    //     center.addVectors(center, car.chassisMesh.position).multiplyScalar(0.5);
+    // });
+    // camera.lookAt(center);
     
     renderer.render( scene, camera );
     time += dt;
@@ -214,8 +218,8 @@ Ammo().then(function(Ammo) {
   
   function getCenterPoint(object) {
     var center = new THREE.Vector3();
-    new THREE.Box3().setFromObject(object).getCenter(center);
-    // object.localToWorld(center);
+    object.boundingBox.getCenter( center );
+    object.localToWorld( center );
     return center;
   }
 
@@ -286,30 +290,43 @@ Ammo().then(function(Ammo) {
   
   function initPlatform() {
     
-    const platformWidth = 50;
-    const platformLength = 50;
-    groundBox = createBox(new THREE.Vector3(0, -0.5, 0), ZERO_QUATERNION, platformWidth, 1, platformLength, 0, 2);
+    const pSize = level.platform.size;
+    const pPos = level.platform.position;
+    groundBox = createBox(new THREE.Vector3(pPos.x, pPos.y, pPos.z), ZERO_QUATERNION, pSize.x, pSize.y, pSize.z, 0, 2);
     
-    var quaternion = new THREE.Quaternion(0, 0, 0, 1);
-    quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 18);
-    const rampBox = createBox(new THREE.Vector3(0, 0.5, 0), quaternion, 8, 0.5, 10, 0);
+    if(level.platform.ramps) {
+      level.platform.ramps.forEach(ramp => {
+        const quaternion = new THREE.Quaternion(0, 0, 0, 1);
+        quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 18);
+        const rampBox = createBox(new THREE.Vector3(ramp.x, ramp.y, ramp.z), quaternion, 8, 0.5, 10, 0);
+      });
+    }
+    
+    if(level.platform.walls) {
+      level.platform.walls.forEach(wall => {
+        const pWall = wall.position;
+        createBox(new THREE.Vector3(pWall.x, pWall.y, pWall.z), ZERO_QUATERNION, wall.size.x, wall.size.y, wall.size.z, 0, 2);
+      });
+    }
     
     platform = new THREE.Group();
     platform.add(groundBox.mesh);
-    
-    const zoneWidth = platformWidth / cars.length;
+       
+    scene.add(platform);
+  }
+  
+  function initZones() {
+    const zoneWidth = level.platform.size.x / cars.length;
     const zoneLength = 25;
     const zonesWidth = cars.length * zoneWidth;
     const xCenter = zonesWidth / 2 + zoneWidth / 2;
-    const zCenter = 37.5;
+    const zCenter = level.platform.position.z + (level.platform.size.z + zoneLength) / 2;
     const start = xCenter - zonesWidth;
-
+    
     cars.forEach((car, i) => {  
       car.zone = createZone(start + i * zoneWidth, zCenter, zoneWidth, zoneLength, car.color);
       platform.add(car.zone.mesh);
-    });
-    
-    scene.add(platform);
+    });    
   }
   
   function createZone(x, z, width, length, color) {
@@ -325,14 +342,18 @@ Ammo().then(function(Ammo) {
     return zone;
   }
   
-  function initBoxes(nw, nh) {
-    const size = .75;
+  function initBoxes() {
+    const size = .75;    
+    const nw = level.boxes.width, nh = level.boxes.height;
+    const bPos = level.boxes.position;
     
     for (let j = 0; j < nw; j++) {
       for (let i = 0; i < nh; i++) {
         let car = cars[j % cars.length];
         let material = car.chassisMesh.material;
-        const box = createBox(new THREE.Vector3(size * j - (size * (nw - 1)) / 2, size * i, 10), ZERO_QUATERNION, size, size, size, 10, null, material);
+        const box = createBox(new THREE.Vector3(bPos.x + size * j - (size * (nw - 1)) / 2, 
+                                                bPos.y + size * i, 
+                                                bPos.z), ZERO_QUATERNION, size, size, size, 10, null, material);
         car.boxes.push(box.mesh);
       }
     }
@@ -374,17 +395,28 @@ Ammo().then(function(Ammo) {
     });
     document.querySelector('#info').innerHTML = text;    
   }
+  
+  function destroy() {
+    //@TODO
+  }
 
-  // - Init -
-  initGraphics();
-  initPhysics();
-  // initCars([colors[0]]);
-  // initCars([colors[0], colors[1]]);
-  initCars(colors);
-  initInfo();
-  initPlatform();
-  initBoxes(8, 6);
-  initPlayers(cars);
-  // initAI(cars);
-  tick();
+  const level = levels[1];
+  
+  function init() {
+    initGraphics();
+    initPhysics();
+    // initCars([colors[0]]);
+    // initCars([colors[0], colors[1]]);
+    // initCars([colors[0], colors[1], colors[2]]);
+    initCars(colors);
+    initInfo();
+    initPlatform();
+    initZones();
+    initBoxes();
+    initPlayers(cars);
+    // initAI(cars);
+    tick();
+  }
+  
+  init();
 });
