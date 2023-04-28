@@ -47,6 +47,17 @@
       a {
         color: #a06851;
       }
+      .debug {
+        position: absolute;
+        top: 50vh;
+        left: 0;
+        width: 100vw;
+        height: 50vh;
+        text-align: left;
+        padding: 0.5em;
+        user-select: none;
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -94,7 +105,8 @@
         </form>
       </footer>
     </dialog>
-    <div id="container"></div>
+    <div id="container">Loading...</div>
+    <div class="debug"></div>
     <!-- <div id="speedometer">0.0 km/h</div> -->
     <script src="./lib/ammo.js"></script>
     <script type="module" src="./script.js"></script>

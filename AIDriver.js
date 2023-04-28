@@ -1,6 +1,8 @@
 import Car from './Car.js';
+import debug from './debug.js';
 
 export default class AIDriver {
+  
   actions = {};
   
   STATES = {
@@ -11,6 +13,7 @@ export default class AIDriver {
   };
   
   constructor(car, bounds) {
+    debug.on();
     this.state = this.STATES.seeking;
     this.car = car;
     this.bounds = bounds;
@@ -19,6 +22,12 @@ export default class AIDriver {
   }
 
   step() {
+    if(this.car.index === 0)
+      debug.clear();
+    else
+      debug.w(' ');
+    debug.color(this.car.color);
+    
     this.actions = {};
     if(this.state === this.STATES.seeking)
       this.seek();
@@ -29,8 +38,12 @@ export default class AIDriver {
     else if(this.state === this.STATES.attacking)
       this.attack();
   }
+  
+  angle(p1, p2) { 
+    return Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI + 180;
+  }
 
-  seek() {
+  seek() {   
     if(!this.target)
       this.target = this.getTarget();
     
@@ -38,30 +51,36 @@ export default class AIDriver {
       this.stop();
       return;
     }
+    const tPos = this.target.position;
     
-    if(this.cPos.distanceTo(this.target.position) > 5) {
+    const distToTarget = this.cPos.distanceTo(this.target.position);
+    debug.w('distToTarget ' + Math.round(distToTarget));
+    
+    if(distToTarget > 5) {
       
-      // console.log(this.cPos.angleTo(this.target.position))
+      let angleToTarget = this.angle(this.cPos, tPos) + 90;
+      if(angleToTarget > 180)
+        angleToTarget -= 360;
+    
+      debug.w('cPos.x ' + Math.round(this.cPos.x) + ' cPos.z ' + Math.round(this.cPos.z));
+      debug.w('tPos.x ' + Math.round(tPos.x) + ' tPos.z ' + Math.round(tPos.z));
+      debug.w('angleToTarget ' + Math.round(angleToTarget));
       
-      const angleToTarget = this.cPos.angleTo(this.target.position);
-      const minAngle = Math.PI / 18;
+      const minAngle = 20;
       
-      // console.log({1: this.cRot.z / Math.PI * 180})
-      // console.log({2: angleToTarget})
+      let carAngle = this.cRot.y * 180 / Math.PI;
+      debug.w('carAngle ' + Math.round(carAngle));
       
-      const carAngle = this.cRot.z + Math.PI;
-      
-      // console.log({'target': angleToTarget / Math.PI * 180, 'car': carAngle / Math.PI * 180})
-      
-      if(carAngle - angleToTarget < minAngle)
+      if(angleToTarget > carAngle + minAngle)
         this.goLeft();
-      else if(carAngle - angleToTarget > minAngle)
+      else if(angleToTarget < carAngle - minAngle)
         this.goRight();
-      else
+      else 
         this.go();
     }
-    else
+    else {
       this.stop();
+    }    
   }
   
   checkBounds() {
@@ -75,6 +94,7 @@ export default class AIDriver {
   }
 
   stop() {
+    debug.w('stop()');
     if(this.car.speed > 0.1)
       this.reverse();
     else if(this.car.speed < -0.1)
@@ -82,15 +102,17 @@ export default class AIDriver {
   }
   
   reverse() {
+    debug.w('reverse()');
     this.actions = {'braking': true };
   }
 
   go() {
+    debug.w('go()');
     this.actions = {'acceleration': true };
   }
   
   goLeft() {
-    // console.log('left')
+    debug.w('goLeft()');
     this.actions = {
       'acceleration': true,
       'left': true
@@ -98,7 +120,7 @@ export default class AIDriver {
   }
   
   goRight() {
-    // console.log('right')
+    debug.w('goRight()');
     this.actions = {
       'acceleration': true,
       'right': true
