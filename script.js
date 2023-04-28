@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'orbitControls';
 
 import Car from './Car.js';
+import debug from './debug.js';
 import AIDriver from './AIDriver.js';
 import Player from './Player.js';
 import levels from './levels.js';
@@ -180,6 +181,8 @@ Ammo().then(function(Ammo) {
     });
     
     physicsWorld.stepSimulation( dt, 10 );
+    // detectCollision();
+    
     controls.update( dt );
 
     cars.forEach(car => {
@@ -200,6 +203,26 @@ Ammo().then(function(Ammo) {
     
     renderer.render( scene, camera );
     time += dt;
+  }
+  
+  function detectCollision(){
+
+    let dispatcher = physicsWorld.getDispatcher();
+    let numManifolds = dispatcher.getNumManifolds();
+
+    for ( let i = 0; i < numManifolds; i ++ ) {
+
+      let contactManifold = dispatcher.getManifoldByIndexInternal(i);
+      let numContacts = contactManifold.getNumContacts();
+
+      for ( let j = 0; j < numContacts; j++ ) {
+
+        let contactPoint = contactManifold.getContactPoint( j );
+        let distance = contactPoint.getDistance();
+
+        console.log({manifoldIndex: i, contactIndex: j, distance: distance});
+      }
+    }
   }
   
   function getObjectsInsideCount(object, objects) {
@@ -412,6 +435,7 @@ Ammo().then(function(Ammo) {
   }
   
   let level = levels[0];
+  // debug.on();
   
   window.start = () => {
     const levelSelected = document.querySelector('input[name="optLevel"]:checked').dataset.index;
