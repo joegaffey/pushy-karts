@@ -142,7 +142,6 @@ Ammo().then(function(Ammo) {
     bounds.max.z -= border;
       
     aiCars.forEach((car, i) => {
-      console.log(bounds)
       aiDrivers.push(new AIDriver(car, bounds));
     });
   }
@@ -155,6 +154,7 @@ Ammo().then(function(Ammo) {
       const xPos = xStart + ((i + 0.5) * -4);
       const car = new Car(new THREE.Vector3(lPos.x + xPos, lPos.y + 4, lPos.z), ZERO_QUATERNION, scene, physicsWorld, material);
       car.color = c;
+      car.index = i;
       cars.push(car);
     });
   }
