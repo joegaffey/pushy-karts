@@ -13,7 +13,6 @@ export default class AIDriver {
   };
   
   constructor(car, bounds) {
-    debug.on();
     this.state = this.STATES.seeking;
     this.car = car;
     this.bounds = bounds;
@@ -37,6 +36,8 @@ export default class AIDriver {
       this.defend();
     else if(this.state === this.STATES.attacking)
       this.attack();
+    else if(this.state === this.STATES.reversing)
+      this.reverse();
   }
   
   angle(p1, p2) { 
@@ -48,9 +49,15 @@ export default class AIDriver {
       this.target = this.getTarget();
     
     if(!this.checkBounds()) {
-      this.stop();
+      if(!this.target)
+        this.state === this.STATES.seeking
+      else {
+        this.state = this.STATES.reversing;
+        this.target = null;
+      }
       return;
     }
+    
     const tPos = this.target.position;
     
     const distToTarget = this.cPos.distanceTo(this.target.position);
@@ -79,7 +86,7 @@ export default class AIDriver {
         this.go();
     }
     else {
-      this.stop();
+      this.target = this.getTarget();
     }    
   }
   
@@ -90,7 +97,10 @@ export default class AIDriver {
   }
 
   getTarget() {
-    return this.car.zone.mesh;
+    if(this.target === this.car.zone.mesh)
+      return {position: {x: 0, y: 0, z: 0}};
+    else
+      return this.car.zone.mesh;
   }
 
   stop() {
