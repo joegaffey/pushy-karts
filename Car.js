@@ -76,6 +76,7 @@ export default class Car {
     
     this.chassisBody = body;
     body.tag = 'chassis';
+    body.car = this;
     
     body.setActivationState(this.DISABLE_DEACTIVATION);
     this.physicsWorld.addRigidBody(body);

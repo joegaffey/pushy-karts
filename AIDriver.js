@@ -15,6 +15,7 @@ export default class AIDriver {
   constructor(car, bounds) {
     this.state = this.STATES.seeking;
     this.car = car;
+    this.car.ai = this;
     this.bounds = bounds;
     this.cPos = this.car.chassisMesh.position;
     this.cRot = this.car.chassisMesh.rotation;
@@ -43,14 +44,24 @@ export default class AIDriver {
   angle(p1, p2) { 
     return Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI + 180;
   }
+  
+  crash() {
+    this.target = null;
+    if(this.state === this.STATES.reversing)
+      this.state = this.STATES.seeking;
+    else 
+      this.state = this.STATES.reversing;
+  }
 
   seek() {   
     if(!this.target)
       this.target = this.getTarget();
     
     if(!this.checkBounds()) {
-      if(!this.target)
-        this.state === this.STATES.seeking
+      if(this.state === this.STATES.reversing)
+        this.state = this.STATES.seeking;
+      else if(!this.target)
+        this.state === this.STATES.seeking;
       else {
         this.state = this.STATES.reversing;
         this.target = null;
