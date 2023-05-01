@@ -7,32 +7,32 @@ import AIDriver from './AIDriver.js';
 import Player from './Player.js';
 import levels from './levels.js';
 
-Ammo().then(function(Ammo) {
+Ammo().then((Ammo) => {
 
   // - Global variables -
-  var DISABLE_DEACTIVATION = 4;
-  var TRANSFORM_AUX = new Ammo.btTransform();
-  var ZERO_QUATERNION = new THREE.Quaternion(0, 0, 0, 1);
+  const DISABLE_DEACTIVATION = 4;
+  const TRANSFORM_AUX = new Ammo.btTransform();
+  const ZERO_QUATERNION = new THREE.Quaternion(0, 0, 0, 1);
 
   // Graphics variables
-  var container, speedometer;
-  var camera, controls, scene, renderer;
-  var terrainMesh, texture;
-  var clock = new THREE.Clock();
-  var materialDynamic, materialStatic;
+  let container, speedometer;
+  let camera, controls, scene, renderer;
+  let terrainMesh, texture;
+  let clock = new THREE.Clock();  
+  let platformMaterial;
 
   // Physics variables
-  var collisionConfiguration;
-  var dispatcher;
-  var broadphase;
-  var solver;
-  var physicsWorld;
+  let collisionConfiguration;
+  let dispatcher;
+  let broadphase;
+  let solver;
+  let physicsWorld;
 
-  var syncList = [];
-  var time = 0;
-  var objectTimePeriod = 3;
-  var timeNextSpawn = time + objectTimePeriod;
-  var maxNumObjects = 30;
+  const syncList = [];
+  let time = 0;
+  const objectTimePeriod = 3;
+  let timeNextSpawn = time + objectTimePeriod;
+  const maxNumObjects = 30;
   
   // Keybord actions
   const keyActions = [ {
@@ -68,7 +68,7 @@ Ammo().then(function(Ammo) {
   
   let platform, groundBox;
   
-  function initGraphics() {
+  function initScene() {
 
     container = document.getElementById( 'container' );
     speedometer = document.getElementById( 'speedometer' );
@@ -102,23 +102,22 @@ Ammo().then(function(Ammo) {
     // const helper = new THREE.CameraHelper( dirLight.shadow.camera );
     // scene.add( helper );
 
-    materialDynamic = new THREE.MeshPhongMaterial( { color:0xfca400 } );
-    materialStatic = new THREE.MeshPhongMaterial( { color:0x999999 } );
+    platformMaterial = new THREE.MeshPhongMaterial({ color:0x999999 });
 
     container.innerHTML = "";
 
     container.appendChild( renderer.domElement );
-
     window.addEventListener( 'resize', onWindowResize, false );
+  }
+  
+  function initKeyEvents() {
     window.addEventListener( 'keydown', keydown);
     window.addEventListener( 'keyup', keyup);
   }
 
   function onWindowResize() {
-
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-
     renderer.setSize( window.innerWidth, window.innerHeight );
   }
   
@@ -167,7 +166,7 @@ Ammo().then(function(Ammo) {
   }
   
   function tick() {
-    requestAnimationFrame( tick );
+    requestAnimationFrame(tick);
     var dt = clock.getDelta();
     
     for (var i = 0; i < syncList.length; i++)
@@ -205,22 +204,35 @@ Ammo().then(function(Ammo) {
     time += dt;
   }
   
-  function detectCollision(){
+  function detectCollision() {
+    cars.forEach(car => {
+      physicsWorld.contactTest(car.chassisBody , cbContactResult );
+    });
+  }
+  
+  let cbContactResult;
+  setupContactResultCallback();
+  
+  //https://gist.github.com/BlueMagnificent/5748bd9588120489634f07c399b795f9
+  function setupContactResultCallback(){
 
-    let dispatcher = physicsWorld.getDispatcher();
-    let numManifolds = dispatcher.getNumManifolds();
+    cbContactResult = new Ammo.ConcreteContactResultCallback();
 
-    for ( let i = 0; i < numManifolds; i ++ ) {
+    cbContactResult.addSingleResult = (cp, colObj0Wrap, partId0, index0, colObj1Wrap, partId1, index1) => {
+      let contactPoint = Ammo.wrapPointer( cp, Ammo.btManifoldPoint );
+      const distance = contactPoint.getDistance();
+      if( distance > 0 ) 
+        return;
 
-      let contactManifold = dispatcher.getManifoldByIndexInternal(i);
-      let numContacts = contactManifold.getNumContacts();
+      let colWrapper0 = Ammo.wrapPointer( colObj0Wrap, Ammo.btCollisionObjectWrapper );
+      let rb0 = Ammo.castObject( colWrapper0.getCollisionObject(), Ammo.btRigidBody );
 
-      for ( let j = 0; j < numContacts; j++ ) {
+      let colWrapper1 = Ammo.wrapPointer( colObj1Wrap, Ammo.btCollisionObjectWrapper );
+      let rb1 = Ammo.castObject( colWrapper1.getCollisionObject(), Ammo.btRigidBody );
 
-        let contactPoint = contactManifold.getContactPoint( j );
-        let distance = contactPoint.getDistance();
-
-        console.log({manifoldIndex: i, contactIndex: j, distance: distance});
+      if(rb0.tag && rb0.tag === 'chassis') {
+        if(rb1.tag && rb1.tag === 'chassis')
+          console.log('Crash!');
       }
     }
   }
@@ -237,12 +249,12 @@ Ammo().then(function(Ammo) {
     return count;
   }
   
-  function getCenterPoint(object) {
-    var center = new THREE.Vector3();
-    object.boundingBox.getCenter( center );
-    object.localToWorld( center );
-    return center;
-  }
+  // function getCenterPoint(object) {
+  //   var center = new THREE.Vector3();
+  //   object.boundingBox.getCenter( center );
+  //   object.localToWorld( center );
+  //   return center;
+  // }
 
   function keyup(e) {
     players.forEach(p => {
@@ -259,7 +271,7 @@ Ammo().then(function(Ammo) {
   function createBox(pos, quat, w, l, h, mass, friction, material) {
     const box = {};
     if(!material)
-      material = mass > 0 ? materialDynamic : materialStatic;
+      material = platformMaterial;
     var shape = new THREE.BoxGeometry(w, l, h, 1, 1, 1);
     var geometry = new Ammo.btBoxShape(new Ammo.btVector3(w * 0.5, l * 0.5, h * 0.5));
 
@@ -414,7 +426,7 @@ Ammo().then(function(Ammo) {
     cars.forEach((car, i) => {
       text += `<div style="color:${car.color};">${Object.keys(keyActions[i])}</div>\n`;
     });
-    document.querySelector('#info').innerHTML = text;    
+    document.querySelector('#info').innerHTML = text;
   }
   
   function destroy() {
@@ -422,15 +434,16 @@ Ammo().then(function(Ammo) {
   }
 
   function init() {
-    initGraphics();
+    initScene();
     initPhysics();
     initCars(colors);
-    initInfo();
     initPlatform();
     initZones();
     initBoxes();
     initPlayers(cars);
     // initAI(cars);
+    initKeyEvents();
+    initInfo();
     tick();
   }
   
