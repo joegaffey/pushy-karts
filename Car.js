@@ -74,6 +74,9 @@ export default class Car {
       )
     );
     
+    this.chassisBody = body;
+    body.tag = 'chassis';
+    
     body.setActivationState(this.DISABLE_DEACTIVATION);
     this.physicsWorld.addRigidBody(body);
     this.chassisMesh = this.createChassisMesh(
@@ -81,7 +84,7 @@ export default class Car {
       this.chassisHeight,
       this.chassisLength
     );
-
+    
     // Raycast Vehicle
     this.engineForce = 0;
     this.vehicleSteering = 0;
