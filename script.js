@@ -180,7 +180,7 @@ Ammo().then((Ammo) => {
     });
     
     physicsWorld.stepSimulation( dt, 10 );
-    // detectCollision();
+    detectCollision();
     
     controls.update( dt );
 
@@ -224,15 +224,22 @@ Ammo().then((Ammo) => {
       if( distance > 0 ) 
         return;
 
-      let colWrapper0 = Ammo.wrapPointer( colObj0Wrap, Ammo.btCollisionObjectWrapper );
-      let rb0 = Ammo.castObject( colWrapper0.getCollisionObject(), Ammo.btRigidBody );
-
-      let colWrapper1 = Ammo.wrapPointer( colObj1Wrap, Ammo.btCollisionObjectWrapper );
-      let rb1 = Ammo.castObject( colWrapper1.getCollisionObject(), Ammo.btRigidBody );
-
+      let colWrapper0 = Ammo.wrapPointer(colObj0Wrap, Ammo.btCollisionObjectWrapper);
+      let rb0 = Ammo.castObject(colWrapper0.getCollisionObject(), Ammo.btRigidBody);
+      
+      let colWrapper1 = Ammo.wrapPointer(colObj1Wrap, Ammo.btCollisionObjectWrapper);
+      let rb1 = Ammo.castObject(colWrapper1.getCollisionObject(), Ammo.btRigidBody);
+      
       if(rb0.tag && rb0.tag === 'chassis') {
-        if(rb1.tag && rb1.tag === 'chassis')
-          console.log('Crash!');
+        if(rb1.tag) {
+          if(rb1.tag === 'chassis') {
+            if(rb0.car.ai)
+              rb0.car.ai.crash();
+          }
+          else if(rb1.tag === 'wall') {
+            rb0.car.ai.crash();
+          }
+        }
       }
     }
   }
@@ -338,7 +345,8 @@ Ammo().then((Ammo) => {
     if(level.platform.walls) {
       level.platform.walls.forEach(wall => {
         const pWall = wall.position;
-        createBox(new THREE.Vector3(pWall.x, pWall.y, pWall.z), ZERO_QUATERNION, wall.size.x, wall.size.y, wall.size.z, 0, 2);
+        const wallBody = createBox(new THREE.Vector3(pWall.x, pWall.y, pWall.z), ZERO_QUATERNION, wall.size.x, wall.size.y, wall.size.z, 0, 2);
+        wallBody.tag = 'wall';
       });
     }
     
@@ -436,12 +444,15 @@ Ammo().then((Ammo) => {
   function init() {
     initScene();
     initPhysics();
+    
     initCars(colors);
     initPlatform();
     initZones();
     initBoxes();
+    
     initPlayers(cars);
     // initAI(cars);
+    
     initKeyEvents();
     initInfo();
     tick();
