@@ -58,6 +58,14 @@
         user-select: none;
         display: none;
       }
+      dialog {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        padding: 30px;
+        font-size: 1.15em;
+        font-weight: 500;
+      }
     </style>
   </head>
   <body>
@@ -105,7 +113,7 @@
         </form>
       </footer>
     </dialog>
-    <div id="container">Loading...</div>
+    <div id="container"></div>
     <div class="debug"></div>
     <!-- <div id="speedometer">0.0 km/h</div> -->
     <script src="./lib/ammo.js"></script>

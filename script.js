@@ -213,6 +213,7 @@ Ammo().then((Ammo) => {
   let cbContactResult;
   setupContactResultCallback();
   
+  //https://medium.com/@bluemagnificent/collision-detection-in-javascript-3d-physics-using-ammo-js-and-three-js-31a5569291ef
   //https://gist.github.com/BlueMagnificent/5748bd9588120489634f07c399b795f9
   function setupContactResultCallback(){
 
@@ -462,6 +463,7 @@ Ammo().then((Ammo) => {
   // debug.on();
   
   window.start = () => {
+    document.querySelector('#container').innerHTML = 'Loading...';
     const levelSelected = document.querySelector('input[name="optLevel"]:checked').dataset.index;
     const carsSelected = document.querySelector('input[name="optCars"]:checked').dataset.index;
     level = levels[levelSelected];
