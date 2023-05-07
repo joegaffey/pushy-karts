@@ -469,5 +469,8 @@ Ammo().then((Ammo) => {
     level = levels[levelSelected];
     colors = colors.slice(0, carsSelected);
     init();
-  }  
+  }
+  
+  document.querySelector('#startButton').innerHTML = 'Go!';
+  document.querySelector('#startButton').disabled = false;
 });
