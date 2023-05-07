@@ -465,7 +465,7 @@ Ammo().then((Ammo) => {
   
   window.start = () => {
     document.querySelector('#container').innerHTML = 'Loading...';
-    const levelSelected = document.querySelector('input[name="optLevel"]:checked').dataset.index;
+    const levelSelected = document.querySelector('#levelSelect').value - 1;
     const carsSelected = document.querySelector('input[name="optCars"]:checked').dataset.index;
     level = levels[levelSelected];
     colors = colors.slice(0, carsSelected);
