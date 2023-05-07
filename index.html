@@ -81,20 +81,8 @@
         <p>Get your boxes into your zone before the other players!</p>
       </header>
       <section>
-        <p>Pick a level</p>
-        <p>
-          <label class="radio-inline">
-            <input type="radio" name="optLevel" data-index="0" checked>1
-          </label>
-          <label class="radio-inline">
-            <input type="radio" name="optLevel" data-index="1">2
-          </label>
-          <label class="radio-inline">
-            <input type="radio" name="optLevel" data-index="2">3
-          </label>
-          <label class="radio-inline">
-            <input type="radio" name="optLevel" data-index="3">4
-          </label>
+        <p>Pick a level
+          <select name="levelSelect" id="levelSelect"></select>
         </p>
         <p>How many karts?</p>
         <p>    
@@ -121,6 +109,15 @@
     <div id="container"></div>
     <div class="debug"></div>
     <!-- <div id="speedometer">0.0 km/h</div> -->
+    <script type="module">
+      import levels from 'levels';
+      const levelSelectEl = document.querySelector('#levelSelect');
+      let html = '';
+      levels.forEach((level, i) => {
+        html += `<option value="${i + 1}">${i + 1}</option>`;
+      });
+      levelSelectEl.innerHTML = html;
+    </script>    
     <script src="./lib/ammo.js"></script>
     <script type="module" src="./script.js"></script>
   </body>
