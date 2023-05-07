@@ -141,27 +141,35 @@ Ammo().then((Ammo) => {
     bounds.max.y = 100;
     bounds.max.z -= border;
       
-    aiCars.forEach((car, i) => {
-      aiDrivers.push(new AIDriver(car, bounds));
+    aiCars.forEach(car => {
+      aiDrivers.push(new AIDriver(cars[car], bounds));
     });
   }
   
   function initCars(cColors) {
     const lPos = level.cars.position;
-    const xStart = cColors.length * 2;
-    cColors.forEach((c, i) => {
-      const material = new THREE.MeshPhongMaterial({color: c});
-      const xPos = xStart + ((i + 0.5) * -4);
-      const car = new Car(new THREE.Vector3(lPos.x + xPos, lPos.y + 4, lPos.z), ZERO_QUATERNION, scene, physicsWorld, material);
-      car.color = c;
-      car.index = i;
-      cars.push(car);
+    const numCars = playerCars.length + aiCars.length;
+    const xStart = numCars * 2;
+    let position = 0;
+    cColors.forEach((color, i) => {
+      if(playerCars.includes(i) || aiCars.includes(i)) {
+        const material = new THREE.MeshPhongMaterial({color: color});
+        const xPos = xStart + ((position + 0.5) * -4);
+        const car = new Car(new THREE.Vector3(lPos.x + xPos, lPos.y + 4, lPos.z), ZERO_QUATERNION, scene, physicsWorld, material);
+        car.color = color;
+        car.index = i;
+        cars.push(car);
+        position++;
+      }
+      else {
+        cars.push(null);
+      }
     });
   }
 
   function initPlayers(pCars) {
     pCars.forEach((car, i) => {
-      players.push(new Player(car, keyActions[i]));
+      players.push(new Player(cars[car], keyActions[i]));
     });
   }
   
@@ -185,10 +193,12 @@ Ammo().then((Ammo) => {
     controls.update( dt );
 
     cars.forEach(car => {
-      let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes);
-      if(newScore !== car.score) {
-        car.score = newScore;
-        car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
+      if(car) {
+        let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes);
+        if(newScore !== car.score) {
+          car.score = newScore;
+          car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
+        }
       }
     });
     
@@ -206,7 +216,8 @@ Ammo().then((Ammo) => {
   
   function detectCollision() {
     cars.forEach(car => {
-      physicsWorld.contactTest(car.chassisBody , cbContactResult );
+      if(car)
+        physicsWorld.contactTest(car.chassisBody , cbContactResult );
     });
   }
   
@@ -358,16 +369,20 @@ Ammo().then((Ammo) => {
   }
   
   function initZones() {
-    const zoneWidth = level.platform.size.x / cars.length;
+    const numCars = aiCars.length + playerCars.length;
+    const zoneWidth = level.platform.size.x / numCars;
     const zoneLength = 25;
-    const zonesWidth = cars.length * zoneWidth;
+    const zonesWidth = numCars * zoneWidth;
     const xCenter = zonesWidth / 2 + zoneWidth / 2;
     const zCenter = level.platform.position.z + (level.platform.size.z + zoneLength) / 2;
     const start = xCenter - zonesWidth;
-    
+    let position = 0;
     cars.forEach((car, i) => {  
-      car.zone = createZone(start + i * zoneWidth, zCenter, zoneWidth, zoneLength, car.color);
-      platform.add(car.zone.mesh);
+      if(car) {
+        car.zone = createZone(start + position * zoneWidth, zCenter, zoneWidth, zoneLength, car.color);
+        position++;
+        platform.add(car.zone.mesh);
+      }
     });    
   }
   
@@ -389,14 +404,21 @@ Ammo().then((Ammo) => {
     const nw = level.boxes.width, nh = level.boxes.height;
     const bPos = level.boxes.position;
     
+    let xPosition = 0;
+    const numCars = aiCars.length + playerCars.length;
+    
     for (let j = 0; j < nw; j++) {
-      for (let i = 0; i < nh; i++) {
-        let car = cars[j % cars.length];
-        let material = car.chassisMesh.material;
-        const box = createBox(new THREE.Vector3(bPos.x + size * j - (size * (nw - 1)) / 2, 
-                                                bPos.y + size * i, 
-                                                bPos.z), ZERO_QUATERNION, size, size, size, 10, null, material);
-        car.boxes.push(box.mesh);
+      let car = cars[j % cars.length];
+      if(car) {
+        for (let i = 0; i < nh; i++) {
+          let material = car.chassisMesh.material;
+          const box = createBox(new THREE.Vector3(bPos.x + size * xPosition - (numCars * size / 2), 
+                                                  bPos.y + size * i, 
+                                                  bPos.z), 
+                                ZERO_QUATERNION, size, size, size, 10, null, material);
+          car.boxes.push(box.mesh);
+        }
+        xPosition++;
       }
     }
   }
@@ -432,9 +454,8 @@ Ammo().then((Ammo) => {
   
   function initInfo() {
     let text = '';
-    cars.forEach((car, i) => {
-      if(!car.ai)
-        text += `<div style="color:${car.color};">${Object.keys(keyActions[i])}</div>\n`;
+    players.forEach((player, i) => {
+      text += `<div style="color:${player.car.color};">${Object.keys(keyActions[i])}</div>\n`;
     });
     document.querySelector('#info').innerHTML = text;
   }
@@ -442,6 +463,9 @@ Ammo().then((Ammo) => {
   function destroy() {
     //@TODO
   }
+  
+  const aiCars = [];
+  const playerCars = [];
 
   function init() {
     initScene();
@@ -452,8 +476,8 @@ Ammo().then((Ammo) => {
     initZones();
     initBoxes();
     
-    initPlayers(cars);
-    // initAI(cars);
+    initPlayers(playerCars);
+    initAI(aiCars);
     
     initKeyEvents();
     initInfo();
@@ -466,9 +490,14 @@ Ammo().then((Ammo) => {
   window.start = () => {
     document.querySelector('#container').innerHTML = 'Loading...';
     const levelSelected = document.querySelector('#levelSelect').value - 1;
-    const carsSelected = document.querySelector('input[name="optCars"]:checked').dataset.index;
+    const kartEls = document.querySelectorAll('.kartSelect > span');
+    kartEls.forEach((kartEl, i) => {
+      if(kartEl.classList.contains('person'))
+        playerCars.push(i);
+      else if(kartEl.classList.contains('robot'))
+        aiCars.push(i);
+    });
     level = levels[levelSelected];
-    colors = colors.slice(0, carsSelected);
     init();
   }
   
