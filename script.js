@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'orbitControls';
 
-import Car from './Car.js';
-import debug from './debug.js';
-import AIDriver from './AIDriver.js';
-import Player from './Player.js';
-import levels from './levels.js';
+import Car from 'Car';
+import debug from 'debug';
+import AIDriver from 'AIDriver';
+import Player from 'Player';
+import levels from 'levels';
 
 Ammo().then((Ammo) => {
 
@@ -433,7 +433,8 @@ Ammo().then((Ammo) => {
   function initInfo() {
     let text = '';
     cars.forEach((car, i) => {
-      text += `<div style="color:${car.color};">${Object.keys(keyActions[i])}</div>\n`;
+      if(!car.ai)
+        text += `<div style="color:${car.color};">${Object.keys(keyActions[i])}</div>\n`;
     });
     document.querySelector('#info').innerHTML = text;
   }
@@ -464,7 +465,7 @@ Ammo().then((Ammo) => {
   
   window.start = () => {
     document.querySelector('#container').innerHTML = 'Loading...';
-    const levelSelected = document.querySelector('input[name="optLevel"]:checked').dataset.index;
+    const levelSelected = document.querySelector('#levelSelect').value - 1;
     const carsSelected = document.querySelector('input[name="optCars"]:checked').dataset.index;
     level = levels[levelSelected];
     colors = colors.slice(0, carsSelected);
