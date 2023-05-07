@@ -70,6 +70,38 @@
         padding: 30px;
         font-size: 1.15em;
         font-weight: 500;
+        border-radius: 8px;
+        max-width: 70vw;
+      }
+      .kartSelect {
+        width: 80%;
+        height: 4em;
+        display: inline-flex;
+        padding: 0;
+        margin: 0;
+        margin-bottom: 1.8em;
+      }
+      .kartSelect > span {
+        border-radius: 8px;
+        width: 25%;
+        height: 100%;
+        color: white;
+        margin: 0.2em;
+      }
+      .iconBg {
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 40%;
+      }
+      .robot {
+        background-image: url("robot.svg");
+        background-size: 60%;
+      }
+      .person {
+        background-image: url("person.svg");
+      }
+      .cross {
+        background-image: url("cross.svg");
       }
     </style>
   </head>
@@ -78,26 +110,18 @@
     <dialog id="startDialog" open>
       <header>
         <h3>Pushy Karts</h3>
-        <p>Get your boxes into your zone before the other players!</p>
+        <p>Push your boxes into their zone before the other players!</p>
       </header>
       <section>
         <p>Pick a level
           <select name="levelSelect" id="levelSelect"></select>
         </p>
-        <p>How many karts?</p>
-        <p>    
-          <label class="radio-inline">
-            <input type="radio" name="optCars" data-index="1" >1
-          </label>
-          <label class="radio-inline">
-            <input type="radio" name="optCars" data-index="2">2
-          </label>
-          <label class="radio-inline">
-            <input type="radio" name="optCars" data-index="3">3
-          </label>
-          <label class="radio-inline">
-            <input type="radio" name="optCars" data-index="4" checked>4
-          </label>
+         <p>Select the players:</p>
+        <p class="kartSelect">
+          <span class="person iconBg" style="background-color:#000099;"> </span>
+          <span class="person iconBg" style="background-color:#990000;"> </span>
+          <span class="person iconBg" style="background-color:#009900;"> </span>
+          <span class="person iconBg" style="background-color:#990099;"> </span>
         </p>
       </section>
       <footer>
@@ -117,6 +141,26 @@
         html += `<option value="${i + 1}">${i + 1}</option>`;
       });
       levelSelectEl.innerHTML = html;
+      
+      const kartEls = document.querySelectorAll('.kartSelect > span');
+      kartEls.forEach(kartEl => {
+        kartEl.onclick = () => nextPlayerClass(kartEl);
+      });
+      
+      function nextPlayerClass(el) {
+        if(el.classList.contains('person')) {
+          el.classList.remove('person');
+          el.classList.add('cross');
+        }
+        // else if(el.classList.contains('robot')) {
+        //   el.classList.remove('robot');
+        //   el.classList.add('cross');
+        // }
+        else if(el.classList.contains('cross')) {
+          el.classList.remove('cross');
+          el.classList.add('person');
+        }
+      }
     </script>    
     <script src="./lib/ammo.js"></script>
     <script type="module" src="./script.js"></script>
