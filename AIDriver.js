@@ -1,5 +1,5 @@
-import Car from './Car.js';
-import debug from './debug.js';
+import Car from 'Car';
+import debug from 'debug';
 
 export default class AIDriver {
   
