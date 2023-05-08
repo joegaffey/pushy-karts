@@ -35,17 +35,17 @@ Ammo().then((Ammo) => {
   const maxNumObjects = 30;
   
   // Keybord actions
-  const keyActions = [ {
-      "KeyW":'acceleration',
-      "KeyS":'braking',
-      "KeyA":'left',
-      "KeyD":'right'
-    }, 
-    {
+  const keyActions = [{
       "ArrowUp":'acceleration',
       "ArrowDown":'braking',
       "ArrowLeft":'left',
       "ArrowRight":'right'
+    }, 
+    {
+      "KeyW":'acceleration',
+      "KeyS":'braking',
+      "KeyA":'left',
+      "KeyD":'right'
     }, 
     {
       "KeyI":'acceleration',
@@ -492,7 +492,7 @@ Ammo().then((Ammo) => {
     const levelSelected = document.querySelector('#levelSelect').value - 1;
     const kartEls = document.querySelectorAll('.kartSelect > span');
     kartEls.forEach((kartEl, i) => {
-      if(kartEl.classList.contains('person'))
+      if(kartEl.classList.contains('keyboard'))
         playerCars.push(i);
       else if(kartEl.classList.contains('robot'))
         aiCars.push(i);
@@ -501,6 +501,6 @@ Ammo().then((Ammo) => {
     init();
   }
   
-  document.querySelector('#startButton').innerHTML = 'Go!';
+  document.querySelector('#startButton').innerHTML = 'Go Push!';
   document.querySelector('#startButton').disabled = false;
 });
