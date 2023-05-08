@@ -11,15 +11,17 @@ class Debug {
   }
   
   color(color) {
-    this.el.style.color = color;
+    if(this.#on)
+      this.el.style.color = color;
   }
   
   clear() {
-    this.el.innerHTML = '';
+    if(this.#on)
+      this.el.innerHTML = '';
   }
   
   w(log) {
-    if(this.on)
+    if(this.#on)
       this.el.innerHTML += log + '<br>';
   }
 }
