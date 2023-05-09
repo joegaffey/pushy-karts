@@ -41,7 +41,7 @@ export default class AIDriver {
       this.reverse();
   }
   
-  angle(p1, p2) { 
+  angleBetween(p1, p2) { 
     return Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI + 180;
   }
   
@@ -76,7 +76,7 @@ export default class AIDriver {
     
     if(distToTarget > 5) {
       
-      let angleToTarget = this.angle(this.cPos, tPos) + 90;
+      let angleToTarget = this.angleBetween(this.cPos, tPos) + 90;
       if(angleToTarget > 180)
         angleToTarget -= 360;
     
