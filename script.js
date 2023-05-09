@@ -349,8 +349,9 @@ Ammo().then((Ammo) => {
     if(level.platform.ramps) {
       level.platform.ramps.forEach(ramp => {
         const quaternion = new THREE.Quaternion(0, 0, 0, 1);
-        quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 18);
-        const rampBox = createBox(new THREE.Vector3(ramp.x, ramp.y, ramp.z), quaternion, 8, 0.5, 10, 0);
+        quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), ramp.angle.x);
+        const rampBox = createBox(new THREE.Vector3(ramp.position.x, ramp.position.y, ramp.position.z), 
+                                  quaternion, ramp.size.x, ramp.size.y, ramp.size.z, 0);
       });
     }
     
@@ -389,8 +390,8 @@ Ammo().then((Ammo) => {
   function createZone(x, z, width, length, color) {
     const material = new THREE.MeshPhongMaterial({color: color});
     material.transparent = true;
-    material.opacity = 0.82;
-    const zone = createBox(new THREE.Vector3(x, -0.5, z), ZERO_QUATERNION, width, 1, length, 0, 2, material);
+    material.opacity = 0.8;
+    const zone = createBox(new THREE.Vector3(x, level.platform.size.y / -2, z), ZERO_QUATERNION, width, level.platform.size.y, length, 0, 2, material);
     zone.label = getLabel(0, 0xFFFFFF, 256);
     zone.label.position.x = zone.mesh.position.x;
     zone.label.position.y = 0.1;
@@ -412,7 +413,7 @@ Ammo().then((Ammo) => {
       if(car) {
         for (let i = 0; i < nh; i++) {
           let material = car.chassisMesh.material;
-          const box = createBox(new THREE.Vector3(bPos.x + size * xPosition - (numCars * size / 2), 
+          const box = createBox(new THREE.Vector3(bPos.x + size * xPosition - (level.boxes.width * size / 2), 
                                                   bPos.y + size * i, 
                                                   bPos.z), 
                                 ZERO_QUATERNION, size, size, size, 10, null, material);
