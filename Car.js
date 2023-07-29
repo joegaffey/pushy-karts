@@ -237,6 +237,9 @@ export default class Car {
       if (this.vehicleSteering > -this.steeringClamp) 
         this.vehicleSteering -= this.steeringIncrement;
     }
+    if (!actions.right && !actions.left) {
+      this.vehicleSteering = 0;
+    }
 
     this.vehicle.applyEngineForce(this.engineForce, this.BACK_LEFT);
     this.vehicle.applyEngineForce(this.engineForce, this.BACK_RIGHT);
