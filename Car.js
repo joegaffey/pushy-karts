@@ -22,16 +22,16 @@ export default class Car {
   wheelWidthFront = 0.2;
 
   friction = 1000;
-  suspensionStiffness = 20.0;
+  suspensionStiffness = 30.0;//20
   suspensionDamping = 2.3;
   suspensionCompression = 4.4;
-  suspensionRestLength = 0.6;
+  suspensionRestLength = 0.45;//0.6
   rollInfluence = 0.2;
 
   steeringIncrement = 0.04;
   steeringClamp = 0.5;
   maxEngineForce = 2000;
-  maxBreakingForce = 200;//100;
+  maxBreakingForce = 500;//100;
   
   vehicle;
   
@@ -80,6 +80,7 @@ export default class Car {
     
     body.setActivationState(this.DISABLE_DEACTIVATION);
     this.physicsWorld.addRigidBody(body);
+    
     this.chassisMesh = this.createChassisMesh(
       this.chassisWidth,
       this.chassisHeight,
@@ -232,22 +233,9 @@ export default class Car {
       if (this.vehicleSteering < this.steeringClamp) 
         this.vehicleSteering += this.steeringIncrement;
     } 
-    else 
-    {
-      if (actions.right) {
-        if (this.vehicleSteering > -this.steeringClamp)
-          this.vehicleSteering -= this.steeringIncrement;
-      } else {
-        if (this.vehicleSteering < -this.steeringIncrement)
-          this.vehicleSteering += this.steeringIncrement;
-        else {
-          if (this.vehicleSteering > this.steeringIncrement)
-            this.vehicleSteering -= this.steeringIncrement;
-          else {
-            this.vehicleSteering = 0;
-          }
-        }
-      }
+    if (actions.right) {
+      if (this.vehicleSteering > -this.steeringClamp) 
+        this.vehicleSteering -= this.steeringIncrement;
     }
 
     this.vehicle.applyEngineForce(this.engineForce, this.BACK_LEFT);

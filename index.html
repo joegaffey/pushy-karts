@@ -21,6 +21,7 @@
           "orbitControls": "./lib/OrbitControls150.js",
           "debug": "./debug.js",
           "AIDriver": "./AIDriver.js",
+          "RemoteAI": "./RemoteAI.js",
           "Player": "./Player.js",
           "levels": "./levels.js",
           "Car": "./Car.js"
@@ -81,14 +82,19 @@
         display: inline-flex;
         padding: 0;
         margin: 0;
-        margin-bottom: 1.8em;
+        margin-bottom: 2.8em;
       }
-      .kartSelect > span {
-        border-radius: 8px;
+      .kartSelect > div {
         width: 25%;
         height: 100%;
-        color: white;
         margin: 0.2em;
+        text-align: center;
+      }
+      .driverSelect {
+        border-radius: 8px;
+        width: 100%;
+        height: 100%;
+        margin-bottom: 0.2em;
       }
       .iconBg {
         background-position: center;
@@ -126,13 +132,25 @@
         <p>Pick a level
           <select name="levelSelect" id="levelSelect"></select>
         </p>
-         <p>Select players:</p>
-        <p class="kartSelect">
-          <span class="keyboard iconBg" style="background-color:#000099;"> </span>
-          <span class="keyboard iconBg" style="background-color:#990000;"> </span>
-          <span class="keyboard iconBg" style="background-color:#009900;"> </span>
-          <span class="keyboard iconBg" style="background-color:#990099;"> </span>
-        </p>
+        <p>Select players:</p>
+        <div class="kartSelect">
+          <div>
+            <div class="driverSelect keyboard iconBg" style="background-color:#000099;"></div>
+            <div>Keyboard</div>
+          </div>
+          <div>
+            <div class="driverSelect keyboard iconBg" style="background-color:#990000;"></div>
+            <div>Keyboard</div>
+          </div>
+          <div>
+            <div class="driverSelect keyboard iconBg" style="background-color:#009900;"></div>
+            <div>Keyboard</div>
+          </div>
+          <div>
+            <div class="driverSelect keyboard iconBg" style="background-color:#990099;"></div>
+            <div>Keyboard</div>
+          </div>
+        </div>
       </section>
       <footer>
         <form method="dialog">
@@ -152,23 +170,31 @@
       });
       levelSelectEl.innerHTML = html;
       
-      const kartEls = document.querySelectorAll('.kartSelect > span');
-      kartEls.forEach(kartEl => {
-        kartEl.onclick = () => nextPlayerClass(kartEl);
+      const driverEls = document.querySelectorAll('.driverSelect');
+      driverEls.forEach(driverEl => {
+        driverEl.onclick = () => nextPlayerClass(driverEl);
       });
       
       function nextPlayerClass(el) {
         if(el.classList.contains('keyboard')) {
           el.classList.remove('keyboard');
           el.classList.add('robot');
+          el.nextSibling.nextSibling.innerHTML = `
+              <select class="aiSelect">
+                <option value="Homer">Homer</option>
+                <option value="Lefty">Lefty</option>
+                <option value="Righty">Righty</option>
+              </select>`;
         }
         else if(el.classList.contains('robot')) {
           el.classList.remove('robot');
           el.classList.add('cross');
+          el.nextSibling.nextSibling.innerHTML = 'None';
         }
         else if(el.classList.contains('cross')) {
           el.classList.remove('cross');
           el.classList.add('keyboard');
+          el.nextSibling.nextSibling.innerHTML = 'Keyboard';
         }
       }
     </script>    
