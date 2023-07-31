@@ -154,6 +154,11 @@ function initAI(aiCars) {
       const remote = new RemoteAI(aiServerUrl, remoteAI[car]);
       remote.car = cars[car];
       aiDrivers.push(remote);
+      const state = {
+        event: 'staticState',
+        objects: getAIStaticWorldState(remote)
+      };        
+      remote.sendStatic(state);
     }
     else 
       aiDrivers.push(new AIDriver(cars[car], bounds));
@@ -189,6 +194,44 @@ function initPlayers(pCars) {
 
 let levelComplete = false;
 
+function getAIDynamicWorldState(ai) {
+  return [
+    {
+      id: '0',
+      type: 'kart',
+      label: 'playerKart',
+      position: ai.car.chassisMesh.position,
+      orientation: {
+        x: ai.car.chassisMesh.rotation.x,
+        y: ai.car.chassisMesh.rotation.x,
+        z: ai.car.chassisMesh.rotation.x,
+      },
+      speed: ai.car.speed
+    }
+  ]
+}
+
+function getAIStaticWorldState(ai) {
+  return [
+    {
+      id: '0',
+      type: 'zone',
+      label: 'zone',
+      position: ai.car.zone.mesh.position,
+      orientation: {
+        x: ai.car.zone.mesh.rotation.x,
+        y: ai.car.zone.mesh.rotation.x,
+        z: ai.car.zone.mesh.rotation.x,
+      },
+      size: {
+        x: ai.car.zone.mesh.geometry.parameters.width,
+        y: ai.car.zone.mesh.geometry.parameters.height,
+        z: ai.car.zone.mesh.geometry.parameters.depth,
+      }
+    }
+  ]
+}
+
 function tick() {
   requestAnimationFrame(tick);
   var dt = clock.getDelta();
@@ -198,9 +241,17 @@ function tick() {
       syncList[i](dt);
 
     players.forEach(p => {  p.car.sync(p.actions); });
-
+    
     aiDrivers.forEach(ai => { 
-      ai.step(); 
+      if(ai.isRemote) {
+        const state = {
+          event: 'dynamicState',
+          objects: getAIDynamicWorldState(ai)
+        };        
+        ai.sendDynamic(state);
+      }        
+      else 
+        ai.step();
       ai.car.sync(ai.actions);
     });
 
