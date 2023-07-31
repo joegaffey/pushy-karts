@@ -1,6 +1,7 @@
 export default class RemoteAI {
   
   constructor(server, name) {
+    this.isRemote = true;
     this.actions = {};
     const wsProtocol = window.location.protocol == "https:" ? "wss" : "ws";
     const url = `${wsProtocol}://${server}/${name}`;
@@ -9,6 +10,10 @@ export default class RemoteAI {
     
     this.connection.onopen = () => {
       console.log('Websocket connected! ' + name);
+      if(this.staticState) {
+        console.log('Sending static state:\n' +  JSON.stringify(this.staticState));
+        this.connection.send(JSON.stringify(this.staticState));
+      }
     };
     
     this.connection.onerror = (e) => {
@@ -31,5 +36,27 @@ export default class RemoteAI {
   step() {
     if(this.connection && this.connection.readyState === 1)
       this.connection.send(JSON.stringify({}));
+  }
+  
+  sendStatic(state) {
+    if(this.connection && this.connection.readyState === 1)
+      this.connection.send(JSON.stringify(state));
+    else 
+      this.staticState = state;
+  }
+  
+  sendDynamic(state) {
+    if(this.connection && this.connection.readyState === 1)
+      this.connection.send(JSON.stringify(state));
+  }
+  
+  sendDelta(state) {
+    if(this.connection && this.connection.readyState === 1)
+      this.connection.send(JSON.stringify(state));
+  }
+  
+  sendCollisions(collisions) {
+    if(this.connection && this.connection.readyState === 1)
+      this.connection.send(JSON.stringify(collisions));
   }
 }
