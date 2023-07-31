@@ -34,6 +34,25 @@ const objectTimePeriod = 3;
 let timeNextSpawn = time + objectTimePeriod;
 const maxNumObjects = 30;
 
+let levelComplete = false;
+let level = levels[0];
+// debug.on();
+
+let players = [];
+let aiDrivers = [];
+let remoteAI = {};
+let aiCars = [];
+let playerCars = [];
+
+let cars = [];
+let colors = ['#000099', '#990000', '#009900',  '#990099']; 
+
+let platform, groundBox;
+
+const aiServer = new URLSearchParams(window.location.search).get('aiServerUrl');
+const aiServerUrl = aiServer || 'pushy-ai-dev.glitch.me';
+
+
 // Keybord actions
 const keyActions = [{
     "ArrowUp":'acceleration',
@@ -61,16 +80,6 @@ const keyActions = [{
   }
 ];
 
-let players = [];
-let aiDrivers = [];
-
-const aiCars = [];
-const playerCars = [];
-
-const cars = [];
-let colors = ['#000099', '#990000', '#009900',  '#990099']; 
-
-let platform, groundBox;
 
 function initScene() {
 
@@ -136,8 +145,6 @@ function initPhysics() {
   physicsWorld = new Ammo.btDiscreteDynamicsWorld( dispatcher, broadphase, solver, collisionConfiguration );
   physicsWorld.setGravity( new Ammo.btVector3( 0, -9.82, 0 ) );
 }  
-
-const aiServerUrl = 'pushy-ai-dev.glitch.me'
       
 function initAI(aiCars) {
   const bounds = new THREE.Box3().setFromObject(platform);
@@ -191,8 +198,6 @@ function initPlayers(pCars) {
     players.push(new Player(cars[car], keyActions[i]));
   });
 }
-
-let levelComplete = false;
 
 function getAIDynamicWorldState(ai) {
   return [
@@ -573,10 +578,6 @@ function init() {
   tick();
 }
 
-let level = levels[0];
-// debug.on();
-
-const remoteAI = {};
 
 window.start = () => {
   document.querySelector('#container').innerHTML = 'Loading...';
