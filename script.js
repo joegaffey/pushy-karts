@@ -50,8 +50,7 @@ let colors = ['#000099', '#990000', '#009900',  '#990099'];
 let platform, groundBox;
 
 const aiServer = new URLSearchParams(window.location.search).get('aiServerUrl');
-const aiServerUrl = aiServer || 'pushy-ai-dev.glitch.me';
-
+const aiServerUrl = aiServer || 'pushy-ai.glitch.me';
 
 // Keybord actions
 const keyActions = [{
