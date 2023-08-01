@@ -176,15 +176,24 @@
         driverEl.onclick = () => nextPlayerClass(driverEl);
       });
       
+      let remoteAiNames = ['Lefty', 'Righty'];
+      const remoteAiParam = new URLSearchParams(window.location.search).get('aiNames');
+      if(remoteAiParam) {
+        remoteAiNames = remoteAiParam.split(',');
+      }
+      
+      let remoteAiOptions = '<option value="Homer">Homer</option>';
+      remoteAiNames.forEach(name => {
+        remoteAiOptions += `\n<option value="${name}">${name}</option>`;
+      });
+      
       function nextPlayerClass(el) {
         if(el.classList.contains('keyboard')) {
           el.classList.remove('keyboard');
           el.classList.add('robot');
           el.nextSibling.nextSibling.innerHTML = `
               <select class="aiSelect">
-                <option value="Homer">Homer</option>
-                <option value="Lefty">Lefty</option>
-                <option value="Righty">Righty</option>
+                ${remoteAiOptions}
               </select>`;
         }
         else if(el.classList.contains('robot')) {
@@ -198,7 +207,7 @@
           el.nextSibling.nextSibling.innerHTML = 'Keyboard';
         }
       }
-    </script>    
+    </script>
     <script src="./lib/ammo.js"></script>
     <script type="module" src="./script.js"></script>
   </body>
