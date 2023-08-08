@@ -199,20 +199,35 @@ function initPlayers(pCars) {
 }
 
 function getAIDynamicWorldState(ai) {
-  return [
-    {
-      id: '0',
-      type: 'kart',
-      label: 'playerKart',
-      position: ai.car.chassisMesh.position,
+  const objects = [];
+  ai.car.boxes.forEach((aiBox, i) => {
+    const box = {
+      id: i + 1,
+      type: 'box',
+      label: 'playerBox',
+      position: aiBox.position,
       orientation: {
-        x: ai.car.chassisMesh.rotation.x,
-        y: ai.car.chassisMesh.rotation.x,
-        z: ai.car.chassisMesh.rotation.x,
-      },
-      speed: ai.car.speed
-    }
-  ]
+        x: aiBox.rotation.x,
+        y: aiBox.rotation.x,
+        z: aiBox.rotation.x,
+      }      
+    };
+    objects.push(box);
+  });
+  const pKart = {
+    id: '0',
+    type: 'kart',
+    label: 'playerKart',
+    position: ai.car.chassisMesh.position,
+    orientation: {
+      x: ai.car.chassisMesh.rotation.x,
+      y: ai.car.chassisMesh.rotation.x,
+      z: ai.car.chassisMesh.rotation.x,
+    },
+    speed: ai.car.speed
+  }
+  objects.push(pKart);
+  return objects;
 }
 
 function getAIStaticWorldState(ai) {
