@@ -54,26 +54,27 @@ const aiServerUrl = aiServer || 'pushy-ai.glitch.me';
 
 // Keybord actions
 const keyActions = [{
-    "ArrowUp":'acceleration',
-    "ArrowDown":'braking',
-    "ArrowLeft":'left',
-    "ArrowRight":'right'
+    'ArrowUp':'acceleration',
+    'ArrowDown':'reversing',
+    'ArrowLeft':'left',
+    'ArrowRight':'right',
+    // 'Space': 'braking'
   }, 
   {
     "KeyW":'acceleration',
-    "KeyS":'braking',
+    "KeyS":'reversing',
     "KeyA":'left',
     "KeyD":'right'
   }, 
   {
     "KeyI":'acceleration',
-    "KeyK":'braking',
+    "KeyK":'reversing',
     "KeyJ":'left',
     "KeyL":'right'
   }, 
   {
     "Numpad5":'acceleration',
-    "Numpad2":'braking',
+    "Numpad2":'reversing',
     "Numpad1":'left',
     "Numpad3":'right'
   }
