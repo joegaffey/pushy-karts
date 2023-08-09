@@ -286,9 +286,8 @@ function tick() {
           car.score = newScore;
           car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
           if(car.score === car.boxes.length) {
-            levelComplete = true;
-            alert('Level Complete!');
             restart();
+            return;
           }
         }
       }
@@ -308,8 +307,9 @@ function tick() {
 }
 
 function restart() {
+  levelComplete = true;
   destroy();
-  init();
+  window.start();
   levelComplete = false;
 }
 
@@ -559,26 +559,25 @@ function initInfo() {
   document.querySelector('#info').innerHTML = text;
 }
 
-function destroy() {
-   cars.forEach((car, i) => {  
-    if(car) {
-      car.zone = null;
-      car.boxes = [];
-    }
-  });    
-  players = [];
-  aiDrivers = [];
+function destroy() { 
+  Ammo.destroy(physicsWorld);
+  Ammo.destroy(solver);
+  Ammo.destroy(dispatcher);
+  Ammo.destroy(collisionConfiguration);
+
+  scene = new THREE.Scene();
   
-  renderer.dispose();
-  scene.traverse(object => {
-  if (!object.isMesh) return
-    object.geometry.dispose();
-  });  
+  players = [];
+  aiDrivers = [];  
+  remoteAI = {};
+  aiCars = [];
+  playerCars = [];
+  cars = [];
 }
 
 function init() {
-  initScene();
   initPhysics();
+  initScene();
 
   initCars(colors);
   initPlatform();
@@ -593,8 +592,11 @@ function init() {
   tick();
 }
 
+window.start = () => start();
 
-window.start = () => {
+let ammoReady = false;
+
+function start() {
   document.querySelector('#container').innerHTML = 'Loading...';
   const levelSelected = document.querySelector('#levelSelect').value - 1;
   const kartEls = document.querySelectorAll('.driverSelect');
@@ -612,11 +614,19 @@ window.start = () => {
   });
   
   level = levels[levelSelected];
-  Ammo().then((Ammo) => {   
+  if(ammoReady) {
     init();
-  });
+  }
+  else {
+    Ammo().then((Ammo) => {   
+      ammoReady = true;
+      init();
+    });
+  }
 }
 
 const startButtonEl = document.querySelector('#startButton');
 startButtonEl.innerHTML = 'Go Push!';
 startButtonEl.disabled = false;
+
+window.end = () => { restart(); }
