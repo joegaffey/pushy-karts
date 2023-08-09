@@ -26,9 +26,10 @@ export default class RemoteAI {
       this.actions = data;
       this.actions = {
         'acceleration': data.includes('FORWARD'),
-        'braking': data.includes('BACKWARD'),
+        'reversing': data.includes('BACKWARD'),
         'left': data.includes('LEFT'),
-        'right': data.includes('RIGHT')
+        'right': data.includes('RIGHT'),
+        'braking': data.includes('BRAKE')
       };
     };
   }
