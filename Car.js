@@ -217,33 +217,39 @@ export default class Car {
     this.breakingForce = 0;
     this.engineForce = 0;
 
-    if (actions.acceleration) {
-      if (this.speed < -1) 
-        this.breakingForce = this.maxBreakingForce;
-      else 
-        this.engineForce = this.maxEngineForce;
+    if(actions.acceleration) {
+      (this.speed < -2) ? this.breakingForce = this.maxBreakingForce : this.breakingForce = 0;
+      this.engineForce = this.maxEngineForce;
     }
-    if (actions.braking) {
-      if (this.speed > 1) 
-        this.breakingForce = this.maxBreakingForce;
-      else 
-        this.engineForce = -this.maxEngineForce / 2;
+    
+    if(actions.reversing) {
+      (this.speed > 2) ? this.breakingForce = this.maxBreakingForce : this.breakingForce = 0;
+      this.engineForce = -this.maxEngineForce / 2;
     }
-    if (actions.left) {
-      if (this.vehicleSteering < this.steeringClamp) 
+    
+    if(actions.left) {
+      if(this.vehicleSteering < this.steeringClamp) 
         this.vehicleSteering += this.steeringIncrement;
     } 
-    if (actions.right) {
+    
+    if(actions.right) {
       if (this.vehicleSteering > -this.steeringClamp) 
         this.vehicleSteering -= this.steeringIncrement;
     }
+    
     if (!actions.right && !actions.left) {
       if(this.vehicleSteering > 0)
         this.vehicleSteering -= this.steeringIncrement;
       else if(this.vehicleSteering < 0)
         this.vehicleSteering += this.steeringIncrement;
+      if(this.vehicleSteering < this.steeringIncrement && this.vehicleSteering > -this.steeringIncrement)
+        this.vehicleSteering = 0;
     }
-
+    if (actions.braking) {
+      this.engineForce = 0;             
+      this.breakingForce = this.maxBreakingForce;
+    }
+    
     this.vehicle.applyEngineForce(this.engineForce, this.BACK_LEFT);
     this.vehicle.applyEngineForce(this.engineForce, this.BACK_RIGHT);
 
