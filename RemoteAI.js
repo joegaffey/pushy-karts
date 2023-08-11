@@ -29,7 +29,8 @@ export default class RemoteAI {
         'reversing': data.includes('BACKWARD'),
         'left': data.includes('LEFT'),
         'right': data.includes('RIGHT'),
-        'braking': data.includes('BRAKE')
+        'braking': data.includes('BRAKE'),
+        'reset': data.includes('RESET')
       };
     };
   }
