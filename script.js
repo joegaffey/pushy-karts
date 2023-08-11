@@ -273,6 +273,8 @@ function tick() {
       else 
         ai.step();
       ai.car.sync(ai.actions);
+      if(ai.actions['reset'])
+        restart();
     });
 
     physicsWorld.stepSimulation(dt, 10);
