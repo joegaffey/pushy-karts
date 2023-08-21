@@ -176,7 +176,7 @@
         driverEl.onclick = () => nextPlayerClass(driverEl);
       });
       
-      let remoteAiNames = ['Lefty', 'Righty'];
+      let remoteAiNames = ['Lefty', 'Righty', 'Turk'];
       const remoteAiParam = new URLSearchParams(window.location.search).get('aiNames');
       if(remoteAiParam) {
         remoteAiNames = remoteAiParam.split(',');
@@ -192,9 +192,9 @@
           el.classList.remove('keyboard');
           el.classList.add('robot');
           el.nextSibling.nextSibling.innerHTML = `
-              <select class="aiSelect">
-                ${remoteAiOptions}
-              </select>`;
+            <select class="aiSelect">
+              ${remoteAiOptions}
+            </select>`;
         }
         else if(el.classList.contains('robot')) {
           el.classList.remove('robot');
