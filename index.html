@@ -39,32 +39,15 @@
         margin: 0px;
         overflow: hidden;
       }
-      /*       
-      #speedometer {
-        color: #ffffff;
-        background-color: #990000;
-        position: absolute;
-        bottom: 0px;
-        padding: 5px;
-      } */
-      #info {
-        position: absolute;
-        top: 0px;
-        width: 100%;
-        padding: 5px;
-      }
       p {
-        padding-top: 0.6em;
+        padding-top: 0.4em;
       }
-      .debug {
-        position: absolute;
-        top: 50vh;
-        left: 0;
-        width: 100vw;
-        height: 50vh;
-        text-align: left;
-        padding: 0.5em;
-        display: none;
+      button {
+        padding: 0.6em;
+        font-weight: 700;
+        color: white;
+        background: #242424;
+        border-radius: 6px;
       }
       dialog[open] {
         position: absolute;
@@ -75,6 +58,17 @@
         font-weight: 500;
         border-radius: 8px;
         max-width: 70vw;
+      }
+      
+      .debug {
+        position: absolute;
+        top: 50vh;
+        left: 0;
+        width: 100vw;
+        height: 50vh;
+        text-align: left;
+        padding: 0.5em;
+        display: none;
       }
       .kartSelect {
         width: 80%;
@@ -112,20 +106,23 @@
       }
       .cross {
         background-image: url("cross.svg");
+        background-size: 50%;
       }
-      #startButton {
-        padding: 0.6em;
-        font-weight: 700;
-        color: white;
-        background: #242424;
-        border-radius: 6px;
-      }
-/*       #levelCompleteDialog {
-        display: none;
-      }
-      #gameOverDialog {
-        display: none;
+      
+      /*       
+      #speedometer {
+        color: #ffffff;
+        background-color: #990000;
+        position: absolute;
+        bottom: 0px;
+        padding: 5px;
       } */
+      #info {
+        position: absolute;
+        top: 0px;
+        width: 100%;
+        padding: 5px;
+      }
     </style>
   </head>
   <body>
@@ -168,15 +165,9 @@
     <dialog id="levelCompleteDialog" closed>
       <header>
         <h2>L E V E L &nbsp C O M P L E T E</h2>
-        <p>Winner: [insert winner name]</p>
+        <p id="levelWinner">Winner: [insert winner name]</p>
       </header>
-      <section class="score">
-        <p>Player 1: [insert score]</p>
-        <p>Player 2: [insert score]</p>
-        <p>Player 3: [insert score]</p>
-        <p>Player 4: [insert score]</p>
-        <br/>
-      </section>
+      <section id="scores"></section>
       <footer>
         <form method="dialog">
           <button id="restartLevelButton">Restart</button>
@@ -188,15 +179,9 @@
     <dialog id="gameOverDialog" closed>
       <header>
         <h2>G A M E &nbsp O V E R</h2>
-        <p>Winner: [insert winner name]</p>
+        <p id="gameWinner">Winner: [insert winner name]</p>
       </header>
-      <section class="endScore">
-        <p>Player 1: [insert score]</p>
-        <p>Player 2: [insert score]</p>
-        <p>Player 3: [insert score]</p>
-        <p>Player 4: [insert score]</p>
-        <br/>
-      </section>
+      <section id="endScores"></section>
       <footer>
         <form method="dialog">
           <button id="restartGameButton">Restart</button>

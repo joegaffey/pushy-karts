@@ -44,6 +44,8 @@ export default class Car {
     this.materialInteractive = materialInteractive;
     this.scene = scene;
     this.physicsWorld = physicsWorld;
+    this.boxHits = 0;
+    this.totalScore = 0;
     
     const geometry = new Ammo.btBoxShape(
       new Ammo.btVector3(
