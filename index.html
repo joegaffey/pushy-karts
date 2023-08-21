@@ -66,7 +66,7 @@
         padding: 0.5em;
         display: none;
       }
-      dialog {
+      dialog[open] {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -120,6 +120,12 @@
         background: #242424;
         border-radius: 6px;
       }
+/*       #levelCompleteDialog {
+        display: none;
+      }
+      #gameOverDialog {
+        display: none;
+      } */
     </style>
   </head>
   <body>
@@ -130,7 +136,7 @@
         <p>Push your boxes into their zone before the other players!</p>
       </header>
       <section>
-        <p>Pick a level
+        <p>Starting level
           <select name="levelSelect" id="levelSelect"></select>
         </p>
         <p>Select players:</p>
@@ -159,30 +165,75 @@
         </form>
       </footer>
     </dialog>
+    <dialog id="levelCompleteDialog" closed>
+      <header>
+        <h2>L E V E L &nbsp C O M P L E T E</h2>
+        <p>Winner: [insert winner name]</p>
+      </header>
+      <section class="score">
+        <p>Player 1: [insert score]</p>
+        <p>Player 2: [insert score]</p>
+        <p>Player 3: [insert score]</p>
+        <p>Player 4: [insert score]</p>
+        <br/>
+      </section>
+      <footer>
+        <form method="dialog">
+          <button id="restartLevelButton">Restart</button>
+          <button id="nextLevelButton">Next Level</button>
+        </form>
+      </footer>
+    </dialog>
+    
+    <dialog id="gameOverDialog" closed>
+      <header>
+        <h2>G A M E &nbsp O V E R</h2>
+        <p>Winner: [insert winner name]</p>
+      </header>
+      <section class="endScore">
+        <p>Player 1: [insert score]</p>
+        <p>Player 2: [insert score]</p>
+        <p>Player 3: [insert score]</p>
+        <p>Player 4: [insert score]</p>
+        <br/>
+      </section>
+      <footer>
+        <form method="dialog">
+          <button id="restartGameButton">Restart</button>
+        </form>
+      </footer>
+    </dialog>
+    
     <div id="container"></div>
     <div class="debug"></div>
     <!-- <div id="speedometer">0.0 km/h</div> -->
     <script type="module">
       import levels from 'levels';
+      
       const levelSelectEl = document.querySelector('#levelSelect');
+      
       let html = '';
+      
       levels.forEach((level, i) => {
         html += `<option value="${i + 1}">${i + 1}</option>`;
       });
       levelSelectEl.innerHTML = html;
       
       const driverEls = document.querySelectorAll('.driverSelect');
+      
       driverEls.forEach(driverEl => {
         driverEl.onclick = () => nextPlayerClass(driverEl);
       });
       
       let remoteAiNames = ['Lefty', 'Righty', 'Turk'];
       const remoteAiParam = new URLSearchParams(window.location.search).get('aiNames');
+      
       if(remoteAiParam) {
         remoteAiNames = remoteAiParam.split(',');
       }
       
       let remoteAiOptions = '<option value="Homer">Homer</option>';
+      
       remoteAiNames.forEach(name => {
         remoteAiOptions += `\n<option value="${name}">${name}</option>`;
       });
