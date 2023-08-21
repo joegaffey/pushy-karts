@@ -80,10 +80,38 @@ const keyActions = [{
   }
 ];
 
+const startDialogEl = document.getElementById('startDialog');
+
+const levelDialogEl = document.getElementById('levelCompleteDialog');
+const restartLevelButtonEl = document.getElementById('restartLevelButton');
+const nextLevelButtonEl = document.getElementById('nextLevelButton');
+
+const gameOverDialogEl = document.getElementById('gameOverDialog');
+const restartGameButtonEl = document.getElementById('restartGameButton');
+
+restartLevelButtonEl.onclick = () => {
+  restart();
+}
+
+nextLevelButtonEl.onclick = () => {
+  levelSelected++;
+  if(levelSelected >= levels.length)
+    endGame();
+  else 
+    restart();
+}
+
+restartGameButtonEl.onclick = () => {
+  location.reload();
+}
+
+function endGame() {
+  gameOverDialogEl.showModal();
+}
 
 function initScene() {
 
-  container = document.getElementById( 'container' );
+  container = document.getElementById('container');
 
   scene = new THREE.Scene();
 
@@ -288,7 +316,7 @@ function tick() {
           car.score = newScore;
           car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
           if(car.score === car.boxes.length) {
-            restart();
+            endLevel();
             return;
           }
         }
@@ -306,6 +334,12 @@ function tick() {
 
   renderer.render(scene, camera);
   time += dt;
+}
+
+function endLevel() {
+  levelComplete = true;
+  // levelDialogEl.style.display = 'block';
+  levelDialogEl.showModal()
 }
 
 function restart() {
@@ -374,6 +408,8 @@ function getObjectsInsideCount(object, objects) {
 // }
 
 function keyup(e) {
+  if(e.key === '\\')
+    endLevel();
   if(e.key === 'r')
     restart();
   players.forEach(p => {
@@ -598,9 +634,12 @@ window.start = () => start();
 
 let ammoReady = false;
 
+let levelSelected = -1;
+
 function start() {
   document.querySelector('#container').innerHTML = 'Loading...';
-  const levelSelected = document.querySelector('#levelSelect').value - 1;
+  if(levelSelected < 0)
+    levelSelected = document.querySelector('#levelSelect').value - 1;
   const kartEls = document.querySelectorAll('.driverSelect');
   
   kartEls.forEach((kartEl, i) => {
@@ -630,5 +669,3 @@ function start() {
 const startButtonEl = document.querySelector('#startButton');
 startButtonEl.innerHTML = 'Go Push!';
 startButtonEl.disabled = false;
-
-window.end = () => { restart(); }
