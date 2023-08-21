@@ -46,6 +46,7 @@ let playerCars = [];
 
 let cars = [];
 let colors = ['#000099', '#990000', '#009900',  '#990099']; 
+let carNames = ['Blue', 'Red', 'Green',  'Purple']; 
 
 let platform, groundBox;
 
@@ -85,9 +86,13 @@ const startDialogEl = document.getElementById('startDialog');
 const levelDialogEl = document.getElementById('levelCompleteDialog');
 const restartLevelButtonEl = document.getElementById('restartLevelButton');
 const nextLevelButtonEl = document.getElementById('nextLevelButton');
+const scoresEl = document.getElementById('scores');
+const levelWinnerEl = document.getElementById('levelWinner');
 
 const gameOverDialogEl = document.getElementById('gameOverDialog');
 const restartGameButtonEl = document.getElementById('restartGameButton');
+const endScoresEl = document.getElementById('endScores');
+const gameWinnerEl = document.getElementById('gameWinner');
 
 restartLevelButtonEl.onclick = () => {
   restart();
@@ -101,12 +106,48 @@ nextLevelButtonEl.onclick = () => {
     restart();
 }
 
+function endLevel() {
+  levelComplete = true;
+  renderWinner(levelWinnerEl);
+  renderScores(scoresEl);
+  levelDialogEl.showModal();
+}
+
 restartGameButtonEl.onclick = () => {
   location.reload();
 }
 
 function endGame() {
+  levelComplete = true;
+  renderWinner(gameWinnerEl);
+  renderScores(endScoresEl);
   gameOverDialogEl.showModal();
+}
+
+function renderScores(el) {
+  let html = '';
+  
+  cars.filter(n => n).forEach(car => {
+    console.log(car)
+    
+    car.totalScore += car.score * 1000// + car.boxHits;
+    car.boxes.forEach(box => {
+      if(box.inside) {
+        const distance = car.zone.mesh.position.distanceTo(box.position);
+        if(distance > 1)
+          car.totalScore += Math.floor(1000 / distance);
+      }
+    });
+    html += `<p>${car.name}: ${car.totalScore}</p>`;
+  });
+  el.innerHTML = html + '<br/>';
+}
+
+function renderWinner(el) {
+  const max = cars.filter(n => n).reduce((prev, current) => {
+    return (prev.score > current.score) ? prev : current
+  });
+  el.innerHTML = `<p>${max.name} wins!</p>`;
 }
 
 function initScene() {
@@ -211,6 +252,7 @@ function initCars(cColors) {
       const xPos = xStart + ((position + 0.5) * -4);
       const car = new Car(new THREE.Vector3(lPos.x + xPos, lPos.y + 4, lPos.z), ZERO_QUATERNION, scene, physicsWorld, material);
       car.color = color;
+      car.name = carNames[i];
       car.index = i;
       cars.push(car);
       position++;
@@ -336,12 +378,6 @@ function tick() {
   time += dt;
 }
 
-function endLevel() {
-  levelComplete = true;
-  // levelDialogEl.style.display = 'block';
-  levelDialogEl.showModal()
-}
-
 function restart() {
   levelComplete = true;
   destroy();
@@ -352,7 +388,7 @@ function restart() {
 function detectCollision() {
   cars.forEach(car => {
     if(car)
-      physicsWorld.contactTest(car.chassisBody , cbContactResult);
+      physicsWorld.contactTest(car.chassisBody, cbContactResult);
   });
 }
 
@@ -383,6 +419,9 @@ function setupContactResultCallback() {
         else if(rb1.tag === 'wall') {
           rb0.car.ai.crash();
         }
+        else if(rb1.tag === 'box') {
+          rb0.car.boxHits++;
+        }
       }
     }
   }
@@ -394,8 +433,12 @@ function getObjectsInsideCount(object, objects) {
   bb.max.y = 10;
 
   objects.forEach(ob => {
-    if(bb.containsPoint(ob.position))
+    if(bb.containsPoint(ob.position)) {
       count++;
+      ob.inside = true;
+    }
+    else
+      ob.inside = false;
   });
   return count;
 }
@@ -451,6 +494,7 @@ function createBox(pos, quat, w, l, h, mass, friction, material) {
 
   var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, geometry, localInertia);
   box.body = new Ammo.btRigidBody(rbInfo);
+  box.body.tag = 'box';
 
   box.body.setFriction(friction);
   //body.setRestitution(.9);

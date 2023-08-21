@@ -7,7 +7,7 @@ Play it [here](https://pushy-karts.glitch.me/)!
 
 #### TODO 🚧
 
-* End level/game logic
+* ~~End level/game logic~~
 * Controller support
 * AI karts (in progress)
 * Online multiplayer (kinda in progress)
