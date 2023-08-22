@@ -1,5 +1,6 @@
 const levels = [
   {
+    time: 120,
     maxCars: 4,
     difficulty: "Easy",
     boxes: {
@@ -35,6 +36,7 @@ const levels = [
     },
   },
   {
+    time: 120,
     maxCars: 4,
     difficulty: "Easy",
     boxes: {
@@ -77,6 +79,7 @@ const levels = [
     },
   },
   {
+    time: 120,
     maxCars: 4,
     difficulty: "Medium",
     boxes: {
@@ -94,6 +97,7 @@ const levels = [
     },
   },
   {
+    time: 120,
     maxCars: 4,
     difficulty: "Hard",
     boxes: {
