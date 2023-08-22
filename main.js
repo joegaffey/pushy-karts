@@ -44,8 +44,13 @@ let aiCars = [];
 let playerCars = [];
 
 let cars = [];
-let colors = ['#000099', '#990000', '#009900',  '#990099']; 
-let carNames = ['Blue', 'Red', 'Green',  'Purple']; 
+
+const carsInfo = [
+  { color: '#000099', name: 'Blue', score: 0 },
+  { color: '#990000', name: 'Red', score: 0 },
+  { color: '#009900', name: 'Green', score: 0 },
+  { color: '#990099', name: 'Purple', score: 0 },
+];
 
 let platform, groundBox;
 
@@ -128,8 +133,8 @@ nextLevelButtonEl.onclick = () => {
 function endLevel(reason) {
   endTimer();
   levelComplete = true;
-  renderWinner(levelWinnerEl);
   renderScores(scoresEl);
+  renderWinner(levelWinnerEl);
   levelDialogEl.showModal();
 }
 
@@ -140,8 +145,8 @@ restartGameButtonEl.onclick = () => {
 function endGame() {
   endTimer();
   levelComplete = true;
-  renderWinner(gameWinnerEl);
   renderScores(endScoresEl);
+  renderWinner(gameWinnerEl);
   gameOverDialogEl.showModal();
 }
 
@@ -151,24 +156,24 @@ function renderScores(el) {
   cars.filter(n => n).forEach(car => {
     //console.log(car)
     
-    car.totalScore += car.score * 1000// + car.boxHits;
+    car.info.score += car.score * 1000// + car.boxHits;
     car.boxes.forEach(box => {
       if(box.inside) {
         const distance = car.zone.mesh.position.distanceTo(box.position);
         if(distance > 1)
-          car.totalScore += Math.floor(1000 / distance);
+          car.info.score += Math.floor(1000 / distance);
       }
     });
-    html += `<p>${car.name}: ${car.totalScore}</p>`;
+    html += `<p>${ car.info.name }: ${ car.info.score }</p>`;
   });
   el.innerHTML = html + '<br/>';
 }
 
 function renderWinner(el) {
   const max = cars.filter(n => n).reduce((prev, current) => {
-    return (prev.score > current.score) ? prev : current
+    return (prev.info.score > current.info.score) ? prev : current;
   });
-  el.innerHTML = `<p>${max.name} wins!</p>`;
+  el.innerHTML = `<p>${ max.info.name } wins!</p>`;
 }
 
 function initScene() {
@@ -262,18 +267,17 @@ function initAI(aiCars) {
   });
 }
 
-function initCars(cColors) {
+function initCars() {
   const lPos = level.cars.position;
   const numCars = playerCars.length + aiCars.length;
   const xStart = numCars * 2;
   let position = 0;
-  cColors.forEach((color, i) => {
+  carsInfo.forEach((ci, i) => {
     if(playerCars.includes(i) || aiCars.includes(i)) {
-      const material = new THREE.MeshPhongMaterial({color: color});
+      const material = new THREE.MeshPhongMaterial({color: ci.color});
       const xPos = xStart + ((position + 0.5) * -4);
       const car = new Car(new THREE.Vector3(lPos.x + xPos, lPos.y + 4, lPos.z), ZERO_QUATERNION, scene, physicsWorld, material);
-      car.color = color;
-      car.name = carNames[i];
+      car.info = ci;
       car.index = i;
       cars.push(car);
       position++;
@@ -472,8 +476,9 @@ function getObjectsInsideCount(object, objects) {
 // }
 
 function keyup(e) {
-  if(e.key === '\\')
+  if(e.key === '\\') {
     endLevel();
+  }
   if(e.key === 'r')
     restart();
   players.forEach(p => {
@@ -581,7 +586,7 @@ function initZones() {
   let position = 0;
   cars.forEach((car, i) => {  
     if(car) {
-      car.zone = createZone(start + position * zoneWidth, zCenter, zoneWidth, zoneLength, car.color);
+      car.zone = createZone(start + position * zoneWidth, zCenter, zoneWidth, zoneLength, car.info.color);
       position++;
       platform.add(car.zone.mesh);
     }
@@ -657,7 +662,7 @@ function getTextTexture(text, color, size, width, height) {
 function initInfo() {
   let text = '';
   players.forEach((player, i) => {
-    text += `<div style="color:${player.car.color};">${Object.keys(keyActions[i])}</div>\n`;
+    text += `<div style="color:${ player.car.info.color };">${Object.keys(keyActions[i])}</div>\n`;
   });
   document.querySelector('#info').innerHTML = text;
 }
@@ -682,7 +687,7 @@ function init() {
   initPhysics();
   initScene();
 
-  initCars(colors);
+  initCars();
   initPlatform();
   initZones();
   initBoxes();
