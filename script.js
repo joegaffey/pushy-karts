@@ -36,7 +36,6 @@ const maxNumObjects = 30;
 
 let levelComplete = false;
 let level = levels[0];
-// debug.on();
 
 let players = [];
 let aiDrivers = [];
@@ -93,6 +92,26 @@ const gameOverDialogEl = document.getElementById('gameOverDialog');
 const restartGameButtonEl = document.getElementById('restartGameButton');
 const endScoresEl = document.getElementById('endScores');
 const gameWinnerEl = document.getElementById('gameWinner');
+const timerEl = document.getElementById('timer');
+
+// debug.on();
+
+let timer = null;
+
+function startTimer() {
+  let timerVal = level.time;
+  timer = setInterval(() => {
+    timerVal--;
+    timerEl.innerHTML = timerVal;
+    if(timerVal === 0)
+      endLevel('timer');
+  }, 1000);
+}
+
+function endTimer() {
+  window.clearInterval(timer);
+  timerEl.innerHTML = '';
+}
 
 restartLevelButtonEl.onclick = () => {
   restart();
@@ -106,7 +125,8 @@ nextLevelButtonEl.onclick = () => {
     restart();
 }
 
-function endLevel() {
+function endLevel(reason) {
+  endTimer();
   levelComplete = true;
   renderWinner(levelWinnerEl);
   renderScores(scoresEl);
@@ -118,6 +138,7 @@ restartGameButtonEl.onclick = () => {
 }
 
 function endGame() {
+  endTimer();
   levelComplete = true;
   renderWinner(gameWinnerEl);
   renderScores(endScoresEl);
@@ -128,7 +149,7 @@ function renderScores(el) {
   let html = '';
   
   cars.filter(n => n).forEach(car => {
-    console.log(car)
+    //console.log(car)
     
     car.totalScore += car.score * 1000// + car.boxHits;
     car.boxes.forEach(box => {
@@ -672,6 +693,8 @@ function init() {
   initKeyEvents();
   initInfo();
   tick();
+  
+  startTimer();
 }
 
 window.start = () => start();
