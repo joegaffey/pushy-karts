@@ -1,8 +1,10 @@
-# Pushy Karts  
+# Pushy Karts
 
-Push your boxes into their zone before the other players!
+Push your boxes into their zone before the other driverss!
 
-Play it [here](https://pushy-karts.glitch.me/)!
+Is it a game or an AI playground - you can decide.
+
+Try it [here](https://pushy-karts.glitch.me/)!
 
 
 #### TODO 🚧

@@ -304,22 +304,25 @@ function getAIDynamicWorldState(ai) {
       position: aiBox.position,
       orientation: {
         x: aiBox.rotation.x,
-        y: aiBox.rotation.x,
-        z: aiBox.rotation.x,
+        y: aiBox.rotation.y,
+        z: aiBox.rotation.z,
       }      
     };
     objects.push(box);
   });
+    
+  let rotation = new THREE.Vector3(0, 0 ,0);
+  rotation.y = ai.car.chassisMesh.rotation.y;
+  
+  if(Math.abs(ai.car.chassisMesh.rotation.z) < Math.PI / 2)
+    rotation.y *= -1;
+  
   const pKart = {
     id: '0',
     type: 'kart',
     label: 'playerKart',
     position: ai.car.chassisMesh.position,
-    orientation: {
-      x: ai.car.chassisMesh.rotation.x,
-      y: ai.car.chassisMesh.rotation.x,
-      z: ai.car.chassisMesh.rotation.x,
-    },
+    orientation: rotation,
     speed: ai.car.speed
   }
   objects.push(pKart);
@@ -327,24 +330,56 @@ function getAIDynamicWorldState(ai) {
 }
 
 function getAIStaticWorldState(ai) {
-  return [
-    {
-      id: '0',
+  const staticWorld = [{
+      id: '1',
       type: 'zone',
-      label: 'zone',
+      label: 'playerZone',
       position: ai.car.zone.mesh.position,
       orientation: {
         x: ai.car.zone.mesh.rotation.x,
-        y: ai.car.zone.mesh.rotation.x,
-        z: ai.car.zone.mesh.rotation.x,
+        y: ai.car.zone.mesh.rotation.y,
+        z: ai.car.zone.mesh.rotation.z,
       },
       size: {
         x: ai.car.zone.mesh.geometry.parameters.width,
         y: ai.car.zone.mesh.geometry.parameters.height,
         z: ai.car.zone.mesh.geometry.parameters.depth,
       }
+    },
+    {
+      id: '0',
+      type: 'platform',
+      label: 'platform',
+      position: level.platform.position,
+      size: level.platform.size,
     }
-  ]
+  ];
+  let i = staticWorld.length;
+  level.platform.walls.forEach(wall => {
+    staticWorld.push({
+      id: i++ + '',
+      type: 'wall',
+      label: 'wall',
+      position: wall.position,
+      size: wall.size,
+    })
+  });
+  cars.forEach(car => {
+    if(car !== ai.car) {
+      staticWorld.push({
+        id: i++ + '',
+        type: 'zone',
+        label: 'zone',
+        position: car.zone.mesh.position,
+        size: {
+          x: car.zone.mesh.geometry.parameters.width,
+          y: car.zone.mesh.geometry.parameters.height,
+          z: car.zone.mesh.geometry.parameters.depth,
+        }
+      })
+    }
+  });
+  return staticWorld;
 }
 
 function tick() {
