@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import Car from 'Car';
 import debug from 'debug';
 
@@ -5,48 +7,52 @@ export default class AIDriver {
   
   STATES = {
     seeking: 'seeking',
-    pushing: 'pushing',
-    defending: 'defending',
-    attacking: 'attacking'
+    reversing: 'reversing'
   };
   
   constructor(car, bounds) {
     this.car = car;
     this.car.ai = this;
     this.bounds = bounds;
-    
-    this.cPos = this.car.chassisMesh.position;
-    this.cRot = this.car.chassisMesh.rotation;
-    
-    this.state = this.STATES.seeking;    
+    this.zoneBounds = this.car.getZoneBounds();
+    this.state = this.STATES.seeking;
   }
 
   step() {
+    this.carPosition = this.car.getPosition();
+    this.carRotation = this.car.getHeading().y * 180 / Math.PI;
+        
+    // if(this.carRotation < 0)  // Convert to 0...360
+    //   this.carRotation = 360 + this.carRotation;
+    
     if(this.car.index === 0)
       debug.clear();
     else
       debug.w(' ');
     debug.color(this.car.color);
-    
+        
     this.actions = {};
     if(this.state === this.STATES.seeking)
       this.seek();
-    else if(this.state === this.STATES.pushing)
-      this.push();
-    else if(this.state === this.STATES.defending)
-      this.defend();
-    else if(this.state === this.STATES.attacking)
-      this.attack();
     else if(this.state === this.STATES.reversing)
       this.reverse();
   }
   
   angleBetween(p1, p2) { 
-    return Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI + 180;
+    let angle = Math.atan((p2.x-p1.x)/(p2.y-p1.y)) * -180 / Math.PI;
+    // if(angle < 0)  // Convert to 0...360
+    //   angle = 360 + angle;
+    return angle;
   }
   
-  crash() {
-    this.target = null;
+  crashCar() {
+    if(this.state === this.STATES.seeking) {
+      this.state = this.STATES.reversing;
+      setTimeout(() => { this.state = this.STATES.seeking; }, 2000 * Math.random());
+    }
+  }
+  
+  crashWall() {
     if(this.state === this.STATES.seeking)
       this.state = this.STATES.reversing;
     else 
@@ -57,78 +63,111 @@ export default class AIDriver {
     if(!this.target)
       this.target = this.getTarget();
     
-    const tPos = this.target.position;
+    const distToTarget = this.carPosition.distanceTo(this.target);
     
-    const distToTarget = this.cPos.distanceTo(this.target.position);
+    // console.log('distToTarget', distToTarget);
+    
     debug.w('distToTarget ' + Math.round(distToTarget));
     
-    if(distToTarget > 5) {
-      this.driveTowards(tPos, distToTarget);
-    }
-    else {
-      this.target = this.getTarget();
-    }    
+    this.driveTowards(this.target, distToTarget);    
   }
   
-  driveTowards(tPos, distance) {
-    let angleToTarget = this.angleBetween(this.cPos, tPos) + 90;
-    if(angleToTarget > 180)
-      angleToTarget -= 360;
-
-    debug.w('cPos.x ' + Math.round(this.cPos.x) + ' cPos.z ' + Math.round(this.cPos.z));
-    debug.w('tPos.x ' + Math.round(tPos.x) + ' tPos.z ' + Math.round(tPos.z));
-    debug.w('angleToTarget ' + Math.round(angleToTarget));
-
-    let carAngle = this.cRot.y * 180 / Math.PI;
-    debug.w('carAngle ' + Math.round(carAngle));
+  driveTowards(targetPosition, distance) {
     
-    const distanceFactor = distance / 1.2;
-
-    if(angleToTarget + distanceFactor > carAngle)
-      this.goLeft();
-    else if(angleToTarget - distanceFactor < carAngle )
+    const angleToTarget = this.angleBetween({x: this.carPosition.x, y: this.carPosition.z},
+                                            {x: targetPosition.x, y: targetPosition.z});
+    
+    // console.log('angleToTarget', angleToTarget);
+    // console.log('carRotation', this.carRotation);
+    // console.log('distance', distance)
+    
+    debug.w('carPosition.x ' + Math.round(this.carPosition.x) + ' carPosition.z ' + Math.round(this.carPosition.z));
+    debug.w('targetPosition.x ' + Math.round(targetPosition.x) + ' targetPosition.z ' + Math.round(targetPosition.z));
+    debug.w('angleToTarget ' + Math.round(angleToTarget));
+    debug.w('carRotation ' + Math.round(this.carRotation));
+    
+    if(distance < 5) {
+      this.stop();
+      setTimeout(() => { this.target = this.getTarget(); }, 1000);
+      return;
+    }
+  
+    const maxDelta = 4;
+    
+    const deltaAngle = this.getDeltaAngle(angleToTarget, this.carRotation); 
+    // console.log('deltaAngle', deltaAngle)
+    
+    if(deltaAngle > 120) {
+      if(angleToTarget > this.carRotation + maxDelta)
+        this.reverseLeft();
+      else if(angleToTarget < this.carRotation - maxDelta)
+        this.reverseRight();
+      else
+        this.reverse();
+      return;
+    }
+     
+    if(angleToTarget > this.carRotation + maxDelta) {
       this.goRight();
-    else 
+    }
+    else if(angleToTarget < this.carRotation - maxDelta) {
+      this.goLeft();
+    }
+    else { 
       this.go();
+    }
   }
   
-  checkBounds() {
-    if(this.bounds.containsPoint(this.cPos)) {
+  getDeltaAngle(a1, a2) {
+    return 180 - Math.abs(Math.abs(a1 - a2) - 180);
+  }
+  
+  checkPlatformBounds() {
+    if(this.bounds.containsPoint(this.carPosition)) {
+      return true;
+    } 
+    return false;
+  }
+  
+  checkZoneBounds(point) {
+    if(this.zoneBounds.containsPoint(point)) {
       return true;
     } 
     return false;
   }
 
   getTarget() {
-    if(this.target === this.car.zone.mesh)
-      return {position: {x: 0, y: 0, z: 0}};
-    else
-      return this.car.zone.mesh;
+    // console.log('this.target', this.target)
+    
+    let target = this.car.getZonePosition();
+    if(this.target === target)
+      target = new THREE.Vector3(0, 0, 0);
+    
+    console.log('New target', target)
+    
+    return target;
   }
 
   stop() {
     debug.w('stop()');
-    if(this.car.speed > 0.1)
-      this.reverse();
-    else if(this.car.speed < -0.1)
-      this.go();
+    this.actions = { 'braking': true };
   }
   
   reverse() {
     debug.w('reverse()');
-    if(!this.checkBounds()) {
-      this.state === this.STATES.seeking;
-      return;
-    }    
-    this.actions = {'braking': true };
+    // if(!this.checkPlatformBounds()) {
+    //   this.state === this.STATES.seeking;
+    //   return;
+    // }    
+    this.actions = {'reversing': true };
   }
 
   go() {
     debug.w('go()');
-    if(!this.checkBounds()) {
-      this.state === this.STATES.reversing;
-      return;
-    }    
+    // if(!this.checkPlatformBounds()) {
+    //   this.state === this.STATES.reversing;
+    //   return;
+    // }    
     this.actions = {'acceleration': true };
   }
   
@@ -147,16 +186,20 @@ export default class AIDriver {
       'right': true
     };
   }
-
-  push() {
-    //@TODO
+    
+  reverseLeft() {
+    debug.w('reverseLeft()');
+    this.actions = {
+      'reversing': true,
+      'left': true
+    };
   }
   
-  defend() {
-    //@TODO
-  }
-  
-  attack() {
-    //@TODO
+  reverseRight() {
+    debug.w('reverseRight()');
+    this.actions = {
+      'reversing': true,
+      'right': true
+    };
   }
 }
