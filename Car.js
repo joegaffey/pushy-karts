@@ -67,14 +67,7 @@ export default class Car {
     const localInertia = new Ammo.btVector3(0, 0, 0);
     geometry.calculateLocalInertia(this.massVehicle, localInertia);
     
-    const body = new Ammo.btRigidBody(
-      new Ammo.btRigidBodyConstructionInfo(
-        this.massVehicle,
-        motionState,
-        geometry,
-        localInertia
-      )
-    );
+    const body = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(this.massVehicle, motionState, geometry, localInertia));
     
     this.chassisBody = body;
     body.tag = 'chassis';
@@ -206,9 +199,35 @@ export default class Car {
 
     this.wheelMeshes[index] = this.createWheelMesh(radius, width);
   }
+  
+  getHeading() {
+    //console.log([this.chassisMesh.rotation.x,this.chassisMesh.rotation.y,this.chassisMesh.rotation.z]);
+    
+    //https://stackoverflow.com/a/34329880
+    let rotation = new THREE.Vector3(0, 0 ,0);
+    this.chassisMesh.getWorldDirection(rotation);
+    rotation.y = -Math.atan2(rotation.x,rotation.z);
+    
+    return rotation;
+  }
+  
+  getPosition() {
+    return this.chassisMesh.position;
+  }
+  
+  getZonePosition() {
+    return this.zone.mesh.position;
+  }
+  
+  getZoneBounds() {
+    const bounds = new THREE.Box3().setFromObject(this.zone.mesh);
+    bounds.max.y = 100;
+    return bounds;
+  }
 
   // Sync keybord actions and physics and graphics
   sync(actions) {
+    
     if(!this.vehicle)
       return;
     this.speed = this.vehicle.getCurrentSpeedKmHour();
