@@ -439,6 +439,7 @@ function tick() {
 }
 
 function restart() {
+  endTimer();
   levelComplete = true;
   destroy();
   window.start();
@@ -470,18 +471,29 @@ function setupContactResultCallback() {
     let colWrapper1 = Ammo.wrapPointer(colObj1Wrap, Ammo.btCollisionObjectWrapper);
     let rb1 = Ammo.castObject(colWrapper1.getCollisionObject(), Ammo.btRigidBody);
 
-    if(rb0.tag && rb0.tag === 'chassis') {
-      if(rb1.tag) {
-        if(rb1.tag === 'chassis') {
-          if(rb0.car.ai)
-            rb0.car.ai.crash();
-        }
-        else if(rb1.tag === 'wall') {
-          rb0.car.ai.crash();
-        }
-        else if(rb1.tag === 'box') {
-          rb0.car.boxHits++;
-        }
+    if(rb0.tag === 'chassis' || rb1.tag === 'chassis') {
+      // console.log('rb0.tag', rb0.tag)
+      // console.log('rb1.tag', rb1.tag)
+      if(rb1.tag && rb1.tag === 'chassis') {
+        if(rb0.car.ai)
+          rb0.car.ai.crashCar();
+        if(rb1.car.ai)
+          rb1.car.ai.crashCar();
+      }
+      else if(rb1.tag === 'wall') {
+        if(rb0.car.ai)
+          rb0.car.ai.crashWall();
+      }
+      else if(rb0.tag === 'wall') {
+        if(rb1.car.ai)
+          rb1.car.ai.crashWall();
+      }
+      else if(rb1.tag === 'gameBox') {
+        rb0.car.boxHits++;
+      }
+      else if(rb0.tag === 'gameBox') {
+        rb1.car.boxHits++;
+        console.log(rb1.car.boxHits)
       }
     }
   }
@@ -542,7 +554,7 @@ function createBox(pos, quat, w, l, h, mass, friction, material) {
   box.mesh.quaternion.copy(quat);
   box.mesh.castShadow = true;
   box.mesh.receiveShadow = true;
-  scene.add( box.mesh );
+  scene.add(box.mesh);
 
   var transform = new Ammo.btTransform();
   transform.setIdentity();
@@ -555,7 +567,7 @@ function createBox(pos, quat, w, l, h, mass, friction, material) {
 
   var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, geometry, localInertia);
   box.body = new Ammo.btRigidBody(rbInfo);
-  box.body.tag = 'box';
+  // box.body.tag = 'box';
 
   box.body.setFriction(friction);
   //body.setRestitution(.9);
@@ -600,7 +612,7 @@ function initPlatform() {
     level.platform.walls.forEach(wall => {
       const pWall = wall.position;
       const wallBody = createBox(new THREE.Vector3(pWall.x, pWall.y, pWall.z), ZERO_QUATERNION, wall.size.x, wall.size.y, wall.size.z, 0, 2);
-      wallBody.tag = 'wall';
+      wallBody.body.tag = 'wall';
     });
   }
 
@@ -658,6 +670,7 @@ function initBoxes() {
                                                 bPos.y + size * i, 
                                                 bPos.z), 
                               ZERO_QUATERNION, size, size, size, 10, null, material);
+        box.body.tag = 'gameBox';
         car.boxes.push(box.mesh);
       }
       xPosition++;
