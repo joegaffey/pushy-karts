@@ -200,15 +200,17 @@ export default class Car {
     this.wheelMeshes[index] = this.createWheelMesh(radius, width);
   }
   
+  /**
+    Returns the compass (Y-axis) heading with 0 as north i.e. direction car is typically facing (towards the top of the board) at game start.
+    Range is -180 to +180 where +/-180 is south and turning the car left goes into negative values while right is positive.
+  */
   getHeading() {
     //console.log([this.chassisMesh.rotation.x,this.chassisMesh.rotation.y,this.chassisMesh.rotation.z]);
     
     //https://stackoverflow.com/a/34329880
     let rotation = new THREE.Vector3(0, 0 ,0);
     this.chassisMesh.getWorldDirection(rotation);
-    rotation.y = -Math.atan2(rotation.x,rotation.z);
-    
-    return rotation;
+    return -Math.atan2(rotation.x,rotation.z) * 180 / Math.PI;
   }
   
   getPosition() {
