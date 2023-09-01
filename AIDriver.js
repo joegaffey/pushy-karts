@@ -20,7 +20,7 @@ export default class AIDriver {
 
   step() {
     this.carPosition = this.car.getPosition();
-    this.carRotation = this.car.getHeading().y * 180 / Math.PI;
+    this.carRotation = this.car.getHeading();
         
     // if(this.carRotation < 0)  // Convert to 0...360
     //   this.carRotation = 360 + this.carRotation;
