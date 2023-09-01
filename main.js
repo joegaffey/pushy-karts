@@ -311,19 +311,20 @@ function getAIDynamicWorldState(ai) {
     objects.push(box);
   });
     
-  let rotation = new THREE.Vector3(0, 0 ,0);
-  rotation.y = ai.car.chassisMesh.rotation.y;
+//   let rotation = new THREE.Vector3(0, 0 ,0);
+//   rotation.y = ai.car.chassisMesh.rotation.y;
   
-  if(Math.abs(ai.car.chassisMesh.rotation.z) < Math.PI / 2)
-    rotation.y *= -1;
+//   if(Math.abs(ai.car.chassisMesh.rotation.z) < Math.PI / 2)
+//     rotation.y *= -1;
   
   const pKart = {
     id: '0',
     type: 'kart',
     label: 'playerKart',
     position: ai.car.chassisMesh.position,
-    orientation: rotation,
-    speed: ai.car.speed
+    orientation: ai.car.chassisMesh.rotation,
+    speed: ai.car.speed,
+    heading: ai.car.getHeading()
   }
   objects.push(pKart);
   return objects;
