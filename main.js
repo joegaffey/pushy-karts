@@ -187,24 +187,28 @@ function initScene() {
   camera.position.y = 30;
   camera.position.z = -30;
   camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
-
+  
   renderer = new THREE.WebGLRenderer({antialias:true});
-  renderer.setClearColor( 0xbfd1e5 );
+  renderer.setClearColor(0xbfd1e5);
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.shadowMap.enabled = true;
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.setSize(window.innerWidth, window.innerHeight);
 
   controls = new OrbitControls(camera, renderer.domElement);
 
-  var ambientLight = new THREE.AmbientLight( 0x404040 );
-  scene.add( ambientLight );
+  var ambientLight = new THREE.AmbientLight(0x444444, Math.PI / 2)
+  scene.add(ambientLight);
 
-  var dirLight = new THREE.DirectionalLight( 0xffffff, 1.5 );
-  dirLight.position.set( 50, 50, -50 );
+  var dirLight = new THREE.DirectionalLight(0xffffff, Math.PI);
+  dirLight.position.set(50, 50, -50);
   dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set( 2048, 2048 );
+  dirLight.shadow.mapSize.set(2048, 2048);
   dirLight.shadow.camera.zoom = 0.1;
-  scene.add( dirLight );
+  scene.add(dirLight);
+  
+  var dirLight1 = new THREE.DirectionalLight(0xffffff, Math.PI / 2);
+  dirLight1.position.set(0, 50, 0);
+  scene.add(dirLight1);
 
   // const helper = new THREE.CameraHelper( dirLight.shadow.camera );
   // scene.add( helper );
