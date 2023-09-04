@@ -10,13 +10,16 @@ export default class AIDriver {
     wait: 'wait',
     backOff: 'backoff'
   };
-  
+    
   constructor(car, bounds) {
     this.car = car;
     this.car.ai = this;
     this.bounds = bounds;
     this.zoneBounds = this.car.getZoneBounds();
     this.state = this.STATES.seek;
+    this.lastTarget = {};
+    
+    console.log(bounds)
     
     window.ai = this;
   }
@@ -74,7 +77,7 @@ export default class AIDriver {
 
   seek() {   
     if(!this.target)
-      this.target = this.getTarget();
+      this.setTarget();
     
     const distToTarget = this.carPosition.distanceTo(this.target);
     
@@ -97,10 +100,9 @@ export default class AIDriver {
     // console.log('distance', distance)
     
     if(distance < 5) {
-      this.lastTarget = this.target;
-      this.target = this.getTarget();
       this.state = this.STATES.wait;
-      setTimeout(() => { 
+      setTimeout(() => {
+        this.setTarget();
         this.state = this.STATES.seek;
       }, 1000);
       return;
@@ -174,19 +176,37 @@ export default class AIDriver {
     return false;
   }
 
-  getTarget() {
-    // console.log('this.target', this.target)
-    // console.log(this.getBoxDistances())    
+  setTarget() {
+    if(this.target)
+      this.lastTarget = this.target.name;
+    else {
+      this.target = this.car.getZonePosition();
+      this.target.name = 'zone';
+    }
+        
+    if(this.lastTarget === 'zone') {
+      let x = this.bounds.min.x + 10;
+      let y = this.bounds.min.y + 10;
+      
+      if(this.car.x > 0)
+        x = this.bounds.max.x + 10;
+        
+      this.target = new THREE.Vector3(x, y, 0);
+      this.target.name = 'corner';
+    }
+    else if(this.lastTarget === 'corner') {
+      // target = new THREE.Vector3(0, 0, 0);
+      // target.name = 'center';
+      
+      this.target = this.getBoxDistances()[0];
+      this.target.name = 'box';
+    }
+    else if(this.lastTarget === 'box') {
+      this.target = this.car.getZonePosition();
+      this.target.name = 'zone';
+    }
     
-    let target = this.car.getZonePosition();
-    const distToTarget = this.carPosition.distanceTo(target);
-
-    if(distToTarget < 8)
-      target = new THREE.Vector3(0, 0, 0);
-    
-    console.log('New target', target);
-    
-    return target;
+    console.log(this.car.info.name + ': New target', this.target.name);    
   }
   
   getBoxDistances() {
