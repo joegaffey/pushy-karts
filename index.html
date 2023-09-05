@@ -38,6 +38,10 @@
         background-color: #bfd1e5;
         margin: 0px;
         overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      h1 {
+        letter-spacing: 1rem;
       }
       p {
         padding-top: 0.4em;
@@ -71,25 +75,31 @@
         display: none;
       }
       .kartSelect {
-        width: 80%;
-        height: 4em;
-        display: inline-flex;
-        padding: 0;
-        margin: 0;
-        margin-bottom: 2.8em;
-      }
-      .kartSelect > div {
-        width: 25%;
-        height: 100%;
-        margin: 0.2em;
-        text-align: center;
-        text-overflow: ellipsis;
+        width: 100%;
+        height: 5em;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        margin-bottom: 2.5em;
       }
       .driverSelect {
-        border-radius: 8px;
+        flex: 1 1 0;
+        width: 0;
+        margin: 0.2em;
+        height: 100%;        
+        text-align: center;        
+      }
+      .driverSelectLabel {
+        text-align: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding-top: 0.2em;
+      }
+      .driverSelectIcon {
+        height: 5em;
         width: 100%;
-        height: 100%;
-        margin-bottom: 0.2em;
+        border-radius: 8px;
       }
       .iconBg {
         background-position: center;
@@ -137,7 +147,7 @@
     <div id="timer"></div>
     <dialog id="startDialog" open>
       <header>
-        <h2>P U S H Y &nbsp K A R T S</h2>
+        <h1>PUSHY KARTS</h1>
         <p>Push your boxes into their zone before the other players!</p>
       </header>
       <section>
@@ -146,21 +156,21 @@
         </p>
         <p>Select players:</p>
         <div class="kartSelect">
-          <div>
-            <div class="driverSelect keyboard iconBg" style="background-color:#000099;"></div>
-            <div>Keyboard</div>
+          <div class="driverSelect">
+            <div class="driverSelectIcon keyboard iconBg" style="background-color:#000099;"></div>
+            <div class="driverSelectLabel">Keyboard</div>
           </div>
-          <div>
-            <div class="driverSelect keyboard iconBg" style="background-color:#990000;"></div>
-            <div>Keyboard</div>
+          <div class="driverSelect">
+            <div class="driverSelectIcon keyboard iconBg" style="background-color:#990000;"></div>
+            <div class="driverSelectLabel">Keyboard</div>
           </div>
-          <div>
-            <div class="driverSelect keyboard iconBg" style="background-color:#009900;"></div>
-            <div>Keyboard</div>
+          <div class="driverSelect">
+            <div class="driverSelectIcon keyboard iconBg" style="background-color:#009900;"></div>
+            <div class="driverSelectLabel">Keyboard</div>
           </div>
-          <div>
-            <div class="driverSelect keyboard iconBg" style="background-color:#990099;"></div>
-            <div>Keyboard</div>
+          <div class="driverSelect">
+            <div class="driverSelectIcon keyboard iconBg" style="background-color:#990099;"></div>
+            <div class="driverSelectLabel">Keyboard</div>
           </div>
         </div>
       </section>
@@ -215,7 +225,7 @@
       const driverEls = document.querySelectorAll('.driverSelect');
       
       driverEls.forEach(driverEl => {
-        driverEl.onclick = () => nextPlayerClass(driverEl);
+        driverEl.querySelector('.driverSelectIcon').onclick = () => nextPlayerClass(driverEl);
       });
       
       let remoteAiNames = ['Lefty', 'Righty', 'Turk'];
@@ -232,23 +242,26 @@
       });
       
       function nextPlayerClass(el) {
-        if(el.classList.contains('keyboard')) {
-          el.classList.remove('keyboard');
-          el.classList.add('robot');
-          el.nextSibling.nextSibling.innerHTML = `
+        const iconEl = el.querySelector('.driverSelectIcon');
+        const labelEl = el.querySelector('.driverSelectLabel');
+        
+        if(iconEl.classList.contains('keyboard')) {
+          iconEl.classList.remove('keyboard');
+          iconEl.classList.add('robot');
+          labelEl.innerHTML = `
             <select class="aiSelect">
               ${remoteAiOptions}
             </select>`;
         }
-        else if(el.classList.contains('robot')) {
-          el.classList.remove('robot');
-          el.classList.add('cross');
-          el.nextSibling.nextSibling.innerHTML = 'None';
+        else if(iconEl.classList.contains('robot')) {
+          iconEl.classList.remove('robot');
+          iconEl.classList.add('cross');
+          labelEl.innerHTML = 'None';
         }
-        else if(el.classList.contains('cross')) {
-          el.classList.remove('cross');
-          el.classList.add('keyboard');
-          el.nextSibling.nextSibling.innerHTML = 'Keyboard';
+        else if(iconEl.classList.contains('cross')) {
+          iconEl.classList.remove('cross');
+          iconEl.classList.add('keyboard');
+          labelEl.innerHTML = 'Keyboard';
         }
       }
     </script>
