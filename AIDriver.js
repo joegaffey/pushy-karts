@@ -19,8 +19,6 @@ export default class AIDriver {
     this.state = this.STATES.seek;
     this.lastTarget = {};
     
-    console.log(bounds)
-    
     window.ai = this;
   }
 
