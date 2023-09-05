@@ -765,7 +765,7 @@ function start() {
   document.querySelector('#container').innerHTML = 'Loading...';
   if(levelSelected < 0)
     levelSelected = document.querySelector('#levelSelect').value - 1;
-  const kartEls = document.querySelectorAll('.driverSelect');
+  const kartEls = document.querySelectorAll('.driverSelectIcon');
   
   kartEls.forEach((kartEl, i) => {
     if(kartEl.classList.contains('keyboard')) {
