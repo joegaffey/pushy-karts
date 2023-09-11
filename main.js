@@ -290,11 +290,14 @@ function initCars() {
       car.index = i;
       
       car.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+      car.camera.fov = 60;
+      car.camera.updateProjectionMatrix();
       car.chassisMesh.attach(car.camera);
       car.camera.position.y = 2;
-      car.camera.position.z = -2;
-      car.camera.lookAt(new THREE.Vector3( 0, 0, 10 ));
-      
+      car.camera.position.z = -3;
+      car.camera.rotation.y = Math.PI;
+      car.camera.rotation.x = 0.25;
+            
       cameras.push(car.camera);
       
       cars.push(car);
@@ -462,6 +465,7 @@ function restart() {
   levelComplete = true;
   destroy();
   window.start();
+  currentCam = 0;
   levelComplete = false;
 }
 
