@@ -15,7 +15,7 @@ let ZERO_QUATERNION;
 
 // Graphics variables
 let container;
-let camera, controls, scene, renderer;
+let controls, scene, renderer;
 let terrainMesh, texture;
 let clock = new THREE.Clock();  
 let platformMaterial;
@@ -44,6 +44,8 @@ let aiCars = [];
 let playerCars = [];
 
 let cars = [];
+const cameras = [];
+
 
 const carsInfo = [
   { color: '#000099', name: 'Blue', score: 0 },
@@ -182,18 +184,19 @@ function initScene() {
 
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 2000 );
-  camera.position.x = 0;
-  camera.position.y = 30;
-  camera.position.z = -30;
-  camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
-  
   renderer = new THREE.WebGLRenderer({antialias:true});
   renderer.setClearColor(0xbfd1e5);
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.shadowMap.enabled = true;
   renderer.setSize(window.innerWidth, window.innerHeight);
-
+  
+  const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 2000 );
+  camera.position.x = 0;
+  camera.position.y = 30;
+  camera.position.z = -30;
+  camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+  cameras.push(camera);
+  
   controls = new OrbitControls(camera, renderer.domElement);
 
   var ambientLight = new THREE.AmbientLight(0x444444, Math.PI / 2)
@@ -217,19 +220,21 @@ function initScene() {
 
   container.innerHTML = "";
 
-  container.appendChild( renderer.domElement );
-  window.addEventListener( 'resize', onWindowResize, false );
+  container.appendChild(renderer.domElement);
+  window.addEventListener('resize', onWindowResize, false);
 }
 
 function initKeyEvents() {
-  window.addEventListener( 'keydown', keydown);
-  window.addEventListener( 'keyup', keyup);
+  window.addEventListener('keydown', keydown);
+  window.addEventListener('keyup', keyup);
 }
 
 function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  cameras.forEach(camera => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+  renderer.setSize( window.innerWidth, window.innerHeight );    
 }
 
 function initPhysics() {
@@ -283,6 +288,15 @@ function initCars() {
       const car = new Car(new THREE.Vector3(lPos.x + xPos, lPos.y + 4, lPos.z), ZERO_QUATERNION, scene, physicsWorld, material);
       car.info = ci;
       car.index = i;
+      
+      car.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+      car.chassisMesh.attach(car.camera);
+      car.camera.position.y = 2;
+      car.camera.position.z = -2;
+      car.camera.lookAt(new THREE.Vector3( 0, 0, 10 ));
+      
+      cameras.push(car.camera);
+      
       cars.push(car);
       position++;
     }
@@ -439,7 +453,7 @@ function tick() {
   // });
   // camera.lookAt(center);
 
-  renderer.render(scene, camera);
+  renderer.render(scene, cameras[currentCam]);
   time += dt;
 }
 
@@ -531,6 +545,9 @@ function keyup(e) {
   if(e.key === '\\') {
     endLevel();
   }
+  if(e.key === '/') {
+    nextCamera();
+  }
   if(e.key === 'r')
     restart();
   players.forEach(p => {
@@ -543,6 +560,14 @@ function keydown(e) {
     p.keyDown(e);
   });
 }
+
+let currentCam = 0;
+
+function nextCamera() {
+  currentCam++;
+  if(currentCam === cameras.length)
+    currentCam = 0;
+  }
 
 function createBox(pos, quat, w, l, h, mass, friction, material) {
   const box = {};
@@ -603,7 +628,6 @@ function initPlatform() {
   const pSize = level.platform.size;
   const pPos = level.platform.position;
   groundBox = createBox(new THREE.Vector3(pPos.x, pPos.y, pPos.z), ZERO_QUATERNION, pSize.x, pSize.y, pSize.z, 0, 2);
-
   if(level.platform.ramps) {
     level.platform.ramps.forEach(ramp => {
       const quaternion = new THREE.Quaternion(0, 0, 0, 1);
