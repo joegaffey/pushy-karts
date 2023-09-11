@@ -252,13 +252,6 @@ function initPhysics() {
       
 function initAI(aiCars) {
   const bounds = new THREE.Box3().setFromObject(platform);
-  const border = 8;
-  bounds.min.x += border;
-  bounds.min.y = -100;
-  bounds.min.z += border;
-  bounds.max.x -= border;
-  bounds.max.y = 100;
-  bounds.max.z -= border;
 
   aiCars.forEach(car => {
     if(remoteAI[car]) {
