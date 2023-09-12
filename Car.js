@@ -214,11 +214,11 @@ export default class Car {
   }
   
   getPosition() {
-    return this.chassisMesh.position;
+    return new THREE.Vector3().copy(this.chassisMesh.position);
   }
   
   getZonePosition() {
-    return this.zone.mesh.position;
+    return new THREE.Vector3().copy(this.zone.mesh.position);
   }
   
   getZoneBounds() {
