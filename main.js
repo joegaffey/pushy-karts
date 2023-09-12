@@ -488,12 +488,15 @@ function setupContactResultCallback() {
     
     let colWrapper1 = Ammo.wrapPointer(colObj1Wrap, Ammo.btCollisionObjectWrapper);
     let rb1 = Ammo.castObject(colWrapper1.getCollisionObject(), Ammo.btRigidBody);
-
+    
+    // const force = contactPoint.getAppliedImpulse();
+    const force = Math.abs(contactPoint.getDistance());
+    
     if(rb0.tag === 'chassis' || rb1.tag === 'chassis') {
       // console.log('rb0.tag', rb0.tag)
       // console.log('rb1.tag', rb1.tag)
       if(rb1.tag && rb1.tag === 'chassis') {
-        audio.play('carhit');
+        audio.play('carhit', force);
         if(rb0.car.ai)
           rb0.car.ai.crashCar();
         if(rb1.car.ai)
@@ -510,7 +513,7 @@ function setupContactResultCallback() {
         }
       }
       else if(rb1.tag === 'gameBox') {
-        audio.play('boxhit');
+        // audio.play('boxhit', force);
         rb0.car.boxHits++;
       }
       else if(rb0.tag === 'gameBox') {
