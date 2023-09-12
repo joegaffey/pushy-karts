@@ -6,9 +6,9 @@ export default class AIDriver {
   
   STATES = {
     seek: 'seek',
-    reverse: 'reverse',
     wait: 'wait',
-    backOff: 'backoff'
+    backOff: 'backoff',
+    reverse: 'reverse'
   };
     
   constructor(car, bounds) {
@@ -19,7 +19,15 @@ export default class AIDriver {
     this.state = this.STATES.seek;
     this.setTarget();
     
-    window.ai = this;
+    // Customize the AI via these properties 
+    this.maxOffsetAngle = 10;   // Maximum angle offset to target before driver corrects
+    this.backoffTimeout = 2000; // Wait to end a backoff
+    this.minTargetDistance = 5; // Arrival distance from trget 
+    this.targetBorder = 6;      // Min distance from platformedge to place targets
+    this.boxStopDistance = 10;  // Z distance to stop before a box 
+    this.turnAroundAngle = 110; // Max angle to target before AI turns around 
+    
+    // window.ai = this; // Debugging purposes
   }
 
   step() {
@@ -31,10 +39,10 @@ export default class AIDriver {
     this.actions = {};
     if(this.state === this.STATES.seek)
       this.seek();
-    else if(this.state === this.STATES.reverse)
-      this.reverse();
     else if(this.state === this.STATES.backOff)
       this.backOff();
+    else if(this.state === this.STATES.reverse)
+      this.reverse();
     else if(this.state === this.STATES.wait)
       this.stop();
   }
@@ -42,13 +50,7 @@ export default class AIDriver {
   angleBetween(p1, p2) { 
     let angle = Math.atan2(p2.y - p1.y , p2.x - p1.x);
     angle *= 180 / Math.PI;
-    if (angle > 180) {
-      angle = -360 + angle;
-    }
-    else if (angle < -180) {
-      angle = 360 + angle;
-    }
-    return angle;
+    return this.clamp180(angle);
   }
   
   // angleBetween(p1, p2) { 
@@ -64,14 +66,14 @@ export default class AIDriver {
   crashCar() {
     if(this.state === this.STATES.seek) {
       this.state = this.STATES.reverse;
-      setTimeout(() => { this.state = this.STATES.seek; }, 2000 * Math.random());
+      setTimeout(() => { this.state = this.STATES.seek; }, this.backoffTimeout * Math.random());
     }
   }
   
   crashWall() {
     if(this.state === this.STATES.seek) {
-      this.state = this.STATES.reverse;
-      setTimeout(() => { this.state = this.STATES.seek; }, 2000 * Math.random());
+      this.state = this.STATES.backOff;
+      setTimeout(() => { this.state = this.STATES.seek; }, this.backoffTimeout * Math.random());
     }
     else 
       this.state = this.STATES.seek;
@@ -91,13 +93,7 @@ export default class AIDriver {
   getAngleToTarget(targetPosition) {
     let angle = -90 + this.angleBetween({x: this.carPosition.x, y: this.carPosition.z},
                                           {x: targetPosition.x, y: targetPosition.z});
-    if (angle > 180) {
-      angle = -360 + angle;
-    }
-    else if (angle < -180) {
-      angle = 360 + angle;
-    }    
-    return angle;
+    return this.clamp180(angle);
   }
   
   getRelativeAngleToTarget(targetPosition) {
@@ -110,7 +106,7 @@ export default class AIDriver {
     
     let angleToTarget = this.getAngleToTarget(tp);
         
-    if(distance < 5) {
+    if(distance < this.minTargetDistance) {
       this.state = this.STATES.wait;
       setTimeout(() => {
         this.setTarget();
@@ -119,14 +115,12 @@ export default class AIDriver {
       return;
     }
 
-    const maxDelta = 5;    
-
     if(cp.z < tp.z) { // Target is north of car
-      if(cr - maxDelta > -90 && cr + maxDelta < 90) { // Car is north facing
-        if(angleToTarget > cr + maxDelta) {
+      if(cr - this.maxOffsetAngle > -90 && cr + this.maxOffsetAngle < 90) { // Car is north facing
+        if(angleToTarget > cr + this.maxOffsetAngle) {
           this.advanceRight();
         }
-        else if(angleToTarget < cr - maxDelta) { 
+        else if(angleToTarget < cr - this.maxOffsetAngle) { 
           this.advanceLeft();
         }
         else { 
@@ -141,22 +135,16 @@ export default class AIDriver {
       }
     }
     else {  // Target is south of car
-      if(cr + maxDelta > 90 || cr - maxDelta < -90) { // Car is south facing
+      if(cr + this.maxOffsetAngle > 90 || cr - this.maxOffsetAngle < -90) { // Car is south facing
         
         // Flip coordinate space
-        if(cr > 0)
-          cr -= 180;
-        else 
-          cr += 180;
-        if(angleToTarget > 0)
-          angleToTarget -= 180;
-        else
-          angleToTarget += 180;
+        if(cr > 0) { cr -= 180; } else { cr += 180; }
+        if(angleToTarget > 0) { angleToTarget -= 180; } else { angleToTarget += 180; }
         
-        if(angleToTarget > cr + maxDelta) {
+        if(angleToTarget > cr + this.maxOffsetAngle) {
           this.advanceRight();
         }
-        else if(angleToTarget < cr - maxDelta) {
+        else if(angleToTarget < cr - this.maxOffsetAngle) {
           this.advanceLeft();
         }
         else { 
@@ -178,17 +166,20 @@ export default class AIDriver {
     return 180 - Math.abs(Math.abs(a1 - a2) - 180);
   }
   
+  clamp180(angle) {
+    if (angle > 180) { angle = -360 + angle; } 
+    else if (angle < -180) { angle = 360 + angle; }
+    return angle;
+  }
+  
   backOff() {
     if(this.target) {
       const angleToTarget = this.getAngleToTarget(this.target);
       
-      let angle = angleToTarget + this.carRotation;
-      if(angle > 180)
-        angle -= 360;
-      else if(angle < -180)
-        angle += 360;
-            
-      if(Math.abs(angle) > 110) {
+      let angle = this.clamp180(angleToTarget + this.carRotation);
+      
+      if(Math.abs(angle) > this.turnAroundAngle) {  
+        // Turn around
         if(angleToTarget + this.carRotation > 0)
           this.reverseLeft();
         else
@@ -198,7 +189,7 @@ export default class AIDriver {
         this.state = this.STATES.seek;
     }
     else 
-        this.state = this.STATES.seek;
+      this.state = this.STATES.seek;
   }
   
   checkPlatformBounds(point) {
@@ -219,34 +210,30 @@ export default class AIDriver {
     if(this.target)
       this.lastTarget = this.target;
     else {
-      this.target = this.car.getZonePosition();
-      this.target.name = 'zone';
+      this.target = new THREE.Vector3(0, 0, 0);
+      this.target.name = 'center';
+      
       this.lastTarget = { name: 'none'};
       return;
     }
         
     if(this.lastTarget.name === 'zone') {
-      const border = 6;
+      let x = this.bounds.min.x + this.targetBorder;
+      let y = this.bounds.min.z + this.targetBorder;
       
-      let x = this.bounds.min.x + border;
-      let y = this.bounds.min.z + border;
-      
-      if(this.carPosition.x > 0)
-        x = this.bounds.max.x - border;
+      x = this.carPosition.x;
         
       this.target = new THREE.Vector3(x, 0, y);
       this.target.name = 'corner';
     }
-    else if(this.lastTarget.name === 'corner') {
-      // target = new THREE.Vector3(0, 0, 0);
-      // target.name = 'center';
-      
+    else if(this.lastTarget.name === 'corner' || this.lastTarget.name === 'center') {
       this.target = this.getBoxDistances()[0].box.position;
       this.target.name = 'box';
       
     }
     else if(this.lastTarget.name === 'box') {
       this.target = this.car.getZonePosition();
+      this.target.z -= this.boxStopDistance;
       this.target.name = 'zone';
     }
     
