@@ -1,3 +1,5 @@
+import audio from 'Audio';
+
 import * as THREE from 'three';
 import { OrbitControls } from 'orbitControls';
 
@@ -483,7 +485,7 @@ function setupContactResultCallback() {
 
     let colWrapper0 = Ammo.wrapPointer(colObj0Wrap, Ammo.btCollisionObjectWrapper);
     let rb0 = Ammo.castObject(colWrapper0.getCollisionObject(), Ammo.btRigidBody);
-
+    
     let colWrapper1 = Ammo.wrapPointer(colObj1Wrap, Ammo.btCollisionObjectWrapper);
     let rb1 = Ammo.castObject(colWrapper1.getCollisionObject(), Ammo.btRigidBody);
 
@@ -491,20 +493,24 @@ function setupContactResultCallback() {
       // console.log('rb0.tag', rb0.tag)
       // console.log('rb1.tag', rb1.tag)
       if(rb1.tag && rb1.tag === 'chassis') {
+        audio.play('carhit');
         if(rb0.car.ai)
           rb0.car.ai.crashCar();
         if(rb1.car.ai)
           rb1.car.ai.crashCar();
       }
       else if(rb1.tag === 'wall') {
-        if(rb0.car.ai)
+        if(rb0.car.ai) {
           rb0.car.ai.crashWall();
+        }
       }
       else if(rb0.tag === 'wall') {
-        if(rb1.car.ai)
+        if(rb1.car.ai) {
           rb1.car.ai.crashWall();
+        }
       }
       else if(rb1.tag === 'gameBox') {
+        audio.play('boxhit');
         rb0.car.boxHits++;
       }
       else if(rb0.tag === 'gameBox') {
@@ -681,25 +687,28 @@ function createZone(x, z, width, length, color) {
 
 function initBoxes() {
   const size = .75;    
-  const nw = level.boxes.width, nh = level.boxes.height;
+  const nw = level.boxes.width;
+  const nh = level.boxes.height;
   const bPos = level.boxes.position;
-
-  let xPosition = 0;
-  const numCars = aiCars.length + playerCars.length;
+  let spacing = size;
+  if(level.boxes.spacing)
+    spacing = level.boxes.spacing;
+  
+  let xPos = 0;
 
   for (let j = 0; j < nw; j++) {
     let car = cars[j % cars.length];
     if(car) {
       for (let i = 0; i < nh; i++) {
         let material = car.chassisMesh.material;
-        const box = createBox(new THREE.Vector3(bPos.x + size * xPosition - (level.boxes.width * size / 2), 
-                                                bPos.y + size * i, 
+        const box = createBox(new THREE.Vector3(bPos.x + (spacing * xPos) - ((nw - 1) * spacing / 2), 
+                                                bPos.y + size * i,
                                                 bPos.z), 
                               ZERO_QUATERNION, size, size, size, 10, null, material);
         box.body.tag = 'gameBox';
         car.boxes.push(box.mesh);
       }
-      xPosition++;
+      xPos++;
     }
   }
 }

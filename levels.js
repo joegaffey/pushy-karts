@@ -5,7 +5,8 @@ const levels = [
     difficulty: "Easy",
     boxes: {
       width: 4,
-      height: 6,
+      height: 10,
+      spacing: 4,
       position: { x: 0, y: 0, z: 0 },
     },
     cars: {
@@ -42,6 +43,7 @@ const levels = [
     boxes: {
       width: 8,
       height: 6,
+      spacing: 1.25,
       position: { x: 0, y: 0, z: 10 },
     },
     cars: {
