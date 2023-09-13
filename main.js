@@ -1,3 +1,5 @@
+import gamePad from './gamepad.js';
+
 import audio from 'Audio';
 
 import * as THREE from 'three';
@@ -46,8 +48,7 @@ let aiCars = [];
 let playerCars = [];
 
 let cars = [];
-const cameras = [];
-
+let cameras = [];
 
 const carsInfo = [
   { color: '#000099', name: 'Blue', score: 0 },
@@ -306,7 +307,7 @@ function initCars() {
 
 function initPlayers(pCars) {
   pCars.forEach((car, i) => {
-    players.push(new Player(cars[car], keyActions[i]));
+    players.push(new Player(cars[car], keyActions[i], gamePad.getPads()[i]));
   });
 }
 
@@ -407,7 +408,10 @@ function tick() {
     for (var i = 0; i < syncList.length; i++)
       syncList[i](dt);
 
-    players.forEach(p => {  p.car.sync(p.actions); });
+    players.forEach(p => {  
+      p.updateActions();
+      p.car.sync(p.actions); 
+    });
     
     aiDrivers.forEach(ai => { 
       if(ai.isRemote) {
@@ -460,7 +464,6 @@ function restart() {
   levelComplete = true;
   destroy();
   window.start();
-  currentCam = 0;
   levelComplete = false;
 }
 
@@ -767,6 +770,8 @@ function destroy() {
   aiCars = [];
   playerCars = [];
   cars = [];
+  cameras = [];
+  currentCam = 0;
 }
 
 function init() {
