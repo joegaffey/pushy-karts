@@ -239,7 +239,7 @@ export default class Car {
 
     this.breakingForce = 0;
     this.engineForce = 0;
-
+    
     if(actions.acceleration) {
       (this.speed < -2) ? this.breakingForce = this.maxBreakingForce : this.breakingForce = 0;
       this.engineForce = this.maxEngineForce;
@@ -253,14 +253,14 @@ export default class Car {
     if(actions.left) {
       if(this.vehicleSteering < this.steeringClamp) 
         this.vehicleSteering += this.steeringIncrement;
-    } 
-    
+    }
+        
     if(actions.right) {
       if (this.vehicleSteering > -this.steeringClamp) 
         this.vehicleSteering -= this.steeringIncrement;
     }
     
-    if (!actions.right && !actions.left) {
+    if(!actions.right && !actions.left) {
       if(this.vehicleSteering > 0)
         this.vehicleSteering -= this.steeringIncrement;
       else if(this.vehicleSteering < 0)
@@ -268,9 +268,28 @@ export default class Car {
       if(this.vehicleSteering < this.steeringIncrement && this.vehicleSteering > -this.steeringIncrement)
         this.vehicleSteering = 0;
     }
-    if (actions.braking) {
+    
+    if(actions.braking) {
       this.engineForce = 0;             
       this.breakingForce = this.maxBreakingForce;
+    }
+    
+    if(actions.aSteer) {
+      this.vehicleSteering = actions.aSteer * this.steeringClamp;
+    }
+    
+    if(actions.aThrottle) {
+      if(this.speed < -2)
+        this.breakingForce = actions.aThrottle * this.maxBreakingForce;
+      else
+        this.engineForce = actions.aThrottle * this.maxEngineForce;
+    }
+    
+    if(actions.aBrake) {
+      if(this.speed > 2)
+        this.breakingForce = actions.aBrake * this.maxBreakingForce;
+      else
+        this.engineForce = actions.aBrake * -this.maxEngineForce / 2;
     }
     
     this.vehicle.applyEngineForce(this.engineForce, this.BACK_LEFT);
