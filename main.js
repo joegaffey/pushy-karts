@@ -106,6 +106,21 @@ const timerEl = document.getElementById('timer');
 
 // debug.on();
 
+async function log(message) {
+  const response = await fetch('https://' + aiServerUrl + '/logs', {
+    method: 'POST',
+    // mode: 'cors', // no-cors, *cors, same-origin
+    // cache: "no-cache",
+    // credentials: "same-origin", // include, *same-origin, omit
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ message: message }),
+  });
+  return response.json();
+}
+
 let timer = null;
 
 function startTimer() {
@@ -141,6 +156,11 @@ function endLevel(reason) {
   renderScores(scoresEl);
   renderWinner(levelWinnerEl);
   levelDialogEl.showModal();
+  let scores = '';
+  cars.filter(n => n).forEach(car => {
+    scores += car.info.name + ':' + car.info.score;
+  });
+  log(scores);
 }
 
 restartGameButtonEl.onclick = () => {
