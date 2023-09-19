@@ -1,10 +1,8 @@
-import gamePad from './gamepad.js';
-
-import audio from 'Audio';
-
 import * as THREE from 'three';
 import { OrbitControls } from 'orbitControls';
 
+import gamePad from 'Gamepad';
+import audio from 'Audio';
 import Car from 'Car';
 import debug from 'debug';
 import AIDriver from 'AIDriver';
@@ -63,7 +61,8 @@ const aiServer = new URLSearchParams(window.location.search).get('aiServerUrl');
 const aiServerUrl = aiServer || 'pushy-ai.glitch.me';
 
 // Keybord actions
-const keyActions = [{
+const keyActions = [
+  {
     'ArrowUp':'acceleration',
     'ArrowDown':'reversing',
     'ArrowLeft':'left',
@@ -106,12 +105,36 @@ const timerEl = document.getElementById('timer');
 
 // debug.on();
 
+async function updateAIOptions() {  
+  let aiOptions = '';
+  try {
+    const response = await fetch('https://' + aiServerUrl + '/ai', {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+    });
+    const aiList = await response.json();
+    aiList.forEach(ai => {
+      aiOptions += `\n<option value="${ai.name}">${ai.name}</option>`;
+    });
+  }
+  catch (error) {
+     aiOptions = `<option value="none">N/A</option>`;
+  }
+  const selects = document.querySelectorAll('.aiSelect');
+  for (let i = 0; i < selects.length; i++) {
+    selects[i].innerHTML = aiOptions;
+  }
+}
+
+document.addEventListener('aiOptions', () => {
+  updateAIOptions();
+});
+
 async function log(message) {
   const response = await fetch('https://' + aiServerUrl + '/logs', {
     method: 'POST',
-    // mode: 'cors', // no-cors, *cors, same-origin
-    // cache: "no-cache",
-    // credentials: "same-origin", // include, *same-origin, omit
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Content-Type": "application/json",

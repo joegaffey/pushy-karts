@@ -25,7 +25,8 @@
           "Player": "./Player.js",
           "levels": "./levels.js",
           "Car": "./Car.js",
-          "Audio": "./audio.js"
+          "Audio": "./audio.js",
+          "Gamepad": "./gamepad.js"
         }
       }
     </script>
@@ -229,18 +230,17 @@
         driverEl.querySelector('.driverSelectIcon').onclick = () => nextPlayerClass(driverEl);
       });
       
-      let remoteAiNames = ['Lefty', 'Righty', 'Turk'];
+      let aiOptions = '<option value="0">Loading...</option>';//<option value="Homer">Homer</option>';
+      
+      let remoteAiNames = [];//['Lefty', 'Righty', 'Turk'];
       const remoteAiParam = new URLSearchParams(window.location.search).get('aiNames');
       
       if(remoteAiParam) {
         remoteAiNames = remoteAiParam.split(',');
-      }
-      
-      let remoteAiOptions = '<option value="Homer">Homer</option>';
-      
-      remoteAiNames.forEach(name => {
-        remoteAiOptions += `\n<option value="${name}">${name}</option>`;
-      });
+        remoteAiNames.forEach(name => {
+          aiOptions += `\n<option value="${name}">${name}</option>`;
+        });
+      }      
       
       function nextPlayerClass(el) {
         const iconEl = el.querySelector('.driverSelectIcon');
@@ -249,10 +249,9 @@
         if(iconEl.classList.contains('keyboard')) {
           iconEl.classList.remove('keyboard');
           iconEl.classList.add('robot');
-          labelEl.innerHTML = `
-            <select class="aiSelect">
-              ${remoteAiOptions}
-            </select>`;
+          labelEl.innerHTML = `<select class="aiSelect">${ aiOptions }</select>`;
+          if(!remoteAiParam)
+            document.dispatchEvent(new Event('aiOptions'));
         }
         else if(iconEl.classList.contains('robot')) {
           iconEl.classList.remove('robot');
@@ -265,6 +264,7 @@
           labelEl.innerHTML = 'Keyboard';
         }
       }
+      
     </script>
     <script src="./lib/ammo.js"></script>
     <script type="module" src="./main.js"></script>
