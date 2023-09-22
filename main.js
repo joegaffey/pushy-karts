@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'orbitControls';
+import { VRButton } from 'VRButton';
 
 import gamePad from 'Gamepad';
 import audio from 'Audio';
@@ -231,10 +232,12 @@ function initScene() {
   scene = new THREE.Scene();
 
   renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.xr.enabled = true;
   renderer.setClearColor(0xbfd1e5);
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.shadowMap.enabled = true;
   renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild( VRButton.createButton( renderer ) );
   
   const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 2000 );
   camera.position.x = 0;
@@ -443,63 +446,65 @@ function getAIStaticWorldState(ai) {
   return staticWorld;
 }
 
-function tick() {
-  requestAnimationFrame(tick);
-  var dt = clock.getDelta();
+function startRenderer() {
+  renderer.setAnimationLoop(() => {
 
-  if(!levelComplete) {
-    for (var i = 0; i < syncList.length; i++)
-      syncList[i](dt);
+    var dt = clock.getDelta();
 
-    players.forEach(p => {  
-      p.updateActions();
-      p.car.sync(p.actions); 
-    });
-    
-    aiDrivers.forEach(ai => { 
-      if(ai.isRemote) {
-        const state = {
-          event: 'dynamicState',
-          objects: getAIDynamicWorldState(ai)
-        };        
-        ai.sendDynamic(state);
-      }        
-      else 
-        ai.step();
-      ai.car.sync(ai.actions);
-      if(ai.actions['reset'])
-        restart();
-    });
+    if(!levelComplete) {
+      for (var i = 0; i < syncList.length; i++)
+        syncList[i](dt);
 
-    physicsWorld.stepSimulation(dt, 10);
-    detectCollision();
-    controls.update(dt);
+      players.forEach(p => {  
+        p.updateActions();
+        p.car.sync(p.actions); 
+      });
 
-    cars.forEach(car => {
-      if(car) {
-        let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes);
-        if(newScore !== car.score) {
-          car.score = newScore;
-          car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
-          if(car.score === car.boxes.length) {
-            endLevel();
-            return;
+      aiDrivers.forEach(ai => { 
+        if(ai.isRemote) {
+          const state = {
+            event: 'dynamicState',
+            objects: getAIDynamicWorldState(ai)
+          };        
+          ai.sendDynamic(state);
+        }        
+        else 
+          ai.step();
+        ai.car.sync(ai.actions);
+        if(ai.actions['reset'])
+          restart();
+      });
+
+      physicsWorld.stepSimulation(dt, 10);
+      detectCollision();
+      controls.update(dt);
+
+      cars.forEach(car => {
+        if(car) {
+          let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes);
+          if(newScore !== car.score) {
+            car.score = newScore;
+            car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
+            if(car.score === car.boxes.length) {
+              endLevel();
+              return;
+            }
           }
         }
-      }
-    }); 
-  }
+      }); 
+    }
 
-  // Attempt at a dynamic multi-tracking camera
-  // const center = cars[0].chassisMesh.position;
-  // cars.forEach((car, i) => {
-  //   if(i > 0)
-  //     center.addVectors(center, car.chassisMesh.position).multiplyScalar(0.5);
-  // });
-  // camera.lookAt(center);
+    // Attempt at a dynamic multi-tracking camera
+    // const center = cars[0].chassisMesh.position;
+    // cars.forEach((car, i) => {
+    //   if(i > 0)
+    //     center.addVectors(center, car.chassisMesh.position).multiplyScalar(0.5);
+    // });
+    // camera.lookAt(center);
 
-  renderer.render(scene, cameras[currentCam]);
-  time += dt;
+    renderer.render(scene, cameras[currentCam]);
+    time += dt;
+  });
 }
 
 function restart() {
@@ -831,7 +836,7 @@ function init() {
 
   initKeyEvents();
   initInfo();
-  tick();
+  startRenderer();
   
   startTimer();
 }
