@@ -279,14 +279,14 @@ export default class Car {
     }
     
     if(actions.aThrottle) {
-      if(this.speed < -2)
+      if(this.speed <= -2)
         this.breakingForce = actions.aThrottle * this.maxBreakingForce;
       else
         this.engineForce = actions.aThrottle * this.maxEngineForce;
     }
     
     if(actions.aBrake) {
-      if(this.speed > 2)
+      if(this.speed >= 2)
         this.breakingForce = actions.aBrake * this.maxBreakingForce;
       else
         this.engineForce = actions.aBrake * -this.maxEngineForce / 2;

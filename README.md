@@ -12,6 +12,7 @@ Try it [here](https://pushy-karts.glitch.me/)!
 * ~~End level/game logic~~
 * ~~Level timer~~
 * ~~Scoring system~~
-* Controller support
+* Controller support (in progress)
+* WebXR support (in progress)
 * AI karts (in progress)
 * Online multiplayer (kinda in progress)
