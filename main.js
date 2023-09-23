@@ -133,6 +133,19 @@ document.addEventListener('aiOptions', () => {
   updateAIOptions();
 });
 
+document.addEventListener('gamepads', () => {
+  updateGamepads();
+});
+
+function updateGamepads() {
+  gamePad.getPads().forEach((pad, i) => {
+    if(players[i]) {
+      players[i].pad = pad;
+      console.log(pad.name + ' assigned to player ' + (i + 1));
+    }
+  });
+}
+
 async function log(message) {
   const response = await fetch('https://' + aiServerUrl + '/logs', {
     method: 'POST',
@@ -239,12 +252,20 @@ function initScene() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild( VRButton.createButton( renderer ) );
   
-  const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 2000 );
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.2, 2000);
   camera.position.x = 0;
   camera.position.y = 30;
   camera.position.z = -30;
-  camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
   cameras.push(camera);
+    
+  renderer.xr.addEventListener('sessionstart', (event) => {
+    console.log(renderer.xr.getCamera().position)
+    console.log(camera.target)
+    renderer.xr.getCamera().position.copy(camera.position);
+    // renderer.xr.getCamera().lookAt(camera.target);
+    renderer.xr.getCamera().lookAt(new THREE.Vector3(0, 0, 10));
+  });
   
   controls = new OrbitControls(camera, renderer.domElement);
 
@@ -501,7 +522,7 @@ function startRenderer() {
     //     center.addVectors(center, car.chassisMesh.position).multiplyScalar(0.5);
     // });
     // camera.lookAt(center);
-
+    
     renderer.render(scene, cameras[currentCam]);
     time += dt;
   });
@@ -624,7 +645,13 @@ function nextCamera() {
   currentCam++;
   if(currentCam === cameras.length)
     currentCam = 0;
-  }
+  
+  console.log(renderer.xr)
+  
+  renderer.xr.getCamera().position.copy(cameras[currentCam].position);
+  if(cameras[currentCam].target)
+    renderer.xr.getCamera().lookAt(cameras[currentCam].target);
+}
 
 function createBox(pos, quat, w, l, h, mass, friction, material) {
   const box = {};
