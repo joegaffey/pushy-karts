@@ -20,6 +20,7 @@ function detectGamepads() {
     console.log(gamePad.pads.length + ' gamepad(s) detected!');
     gamePad.pads.forEach(pad => {
       console.log(pad.name);
+      console.log(gPads);
     });
     document.dispatchEvent(new Event('gamepads'));
   }
