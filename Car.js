@@ -274,7 +274,7 @@ export default class Car {
       this.breakingForce = this.maxBreakingForce;
     }
     
-    if(actions.aSteer) {
+    if(!actions.right && !actions.left && actions.aSteer) {
       this.vehicleSteering = actions.aSteer * this.steeringClamp;
     }
     

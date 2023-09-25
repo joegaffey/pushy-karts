@@ -1,6 +1,6 @@
 const audio = {};
 audio.context = new AudioContext();
-audio.on = true;
+audio.on = false;
 
 const path = 'https://cdn.glitch.global/0a4c92ea-651d-46ad-9395-99ef6a57e497/';
 
@@ -11,7 +11,7 @@ audio.sounds = {
 };
 
 audio.play = function (sound, vol) {
-  if(!this.on)
+  if(!audio.on)
     return;
   if(vol === 0)
     vol = 1;

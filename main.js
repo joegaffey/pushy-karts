@@ -43,6 +43,7 @@ let level = levels[0];
 let players = [];
 let aiDrivers = [];
 let remoteAI = {};
+let externalAI = {};
 let aiCars = [];
 let playerCars = [];
 
@@ -106,7 +107,7 @@ const timerEl = document.getElementById('timer');
 
 // debug.on();
 
-async function updateAIOptions() {  
+async function updateAIOptions() {
   let aiOptions = '';
   try {
     const response = await fetch('https://' + aiServerUrl + '/ai', {
@@ -117,7 +118,10 @@ async function updateAIOptions() {
     });
     const aiList = await response.json();
     aiList.forEach(ai => {
-      aiOptions += `\n<option value="${ai.name}">${ai.name}</option>`;
+      let path = '';
+      if(ai.path)
+        path = `data-path="${ ai.path }"`;
+      aiOptions += `\n<option value="${ ai.name }" data-type="${ ai.type }" ${ path }>${ ai.name }</option>`;
     });
   }
   catch (error) {
@@ -125,7 +129,8 @@ async function updateAIOptions() {
   }
   const selects = document.querySelectorAll('.aiSelect');
   for (let i = 0; i < selects.length; i++) {
-    selects[i].innerHTML = aiOptions;
+    if(selects[i].selectedIndex === 0)
+      selects[i].innerHTML = aiOptions;
   }
 }
 
@@ -334,7 +339,18 @@ function initAI(aiCars) {
       };        
       remote.sendStatic(state);
     }
-    else 
+    else if(externalAI[car]) {
+      console.log(externalAI[car])
+      const remote = new RemoteAI(externalAI[car].path, externalAI[car].name);
+      remote.car = cars[car];
+      aiDrivers.push(remote);
+      const state = {
+        event: 'staticState',
+        objects: getAIStaticWorldState(remote)
+      };        
+      remote.sendStatic(state);
+    }
+    else
       aiDrivers.push(new AIDriver(cars[car], bounds));
   });
 }
@@ -887,8 +903,13 @@ function start() {
     else if(kartEl.classList.contains('robot')) {
       aiCars.push(i);
       const aiSelectEl = kartEl.parentNode.querySelector('.aiSelect');
-      if(aiSelectEl.value && aiSelectEl.value !== 'Homer')
+      const option = aiSelectEl.options[aiSelectEl.selectedIndex];
+      if(option.dataset.type === 'remote') {
         remoteAI[i] = aiSelectEl.value;
+      }
+      else if(option.dataset.type === 'external') {
+        externalAI[i] = { name: aiSelectEl.value, path: option.dataset.path };
+      }
     }
   });
   
