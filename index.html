@@ -237,11 +237,12 @@
       const remoteAiParam = new URLSearchParams(window.location.search).get('aiNames');
       
       if(remoteAiParam) {
-        remoteAiNames = remoteAiParam.split(',');
+        remoteAiNames = JSON.parse(remoteAiParam);
+        aiOptions = '';
         remoteAiNames.forEach(name => {
           aiOptions += `\n<option value="${name}">${name}</option>`;
         });
-      }      
+      }
       
       function nextPlayerClass(el) {
         const iconEl = el.querySelector('.driverSelectIcon');
@@ -251,7 +252,7 @@
           iconEl.classList.remove('keyboard');
           iconEl.classList.add('robot');
           labelEl.innerHTML = `<select class="aiSelect">${ aiOptions }</select>`;
-          if(!remoteAiParam)
+          if(remoteAiNames.length < 1)
             document.dispatchEvent(new Event('aiOptions'));
         }
         else if(iconEl.classList.contains('robot')) {
