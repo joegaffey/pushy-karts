@@ -12,7 +12,11 @@ function detectGamepads() {
   const tempPads = [];
   gPads.forEach((gPad, i) => {
     if(gPad && gPad.connected && gPad.timestamp > 0 && gPad.axes[0]) {
-      tempPads.push({ gPadIndex: i, name: gPad.id});
+      const isWheel = gamePad.isWheel(gPad);
+      const isXbox = gamePad.isXbox(gPad);
+      const isPlaystation = gamePad.isPlaystation(gPad);
+      
+      tempPads.push({ gPadIndex: i, name: gPad.id, isWheel: isWheel, isXbox: isXbox, isPlaystation: isPlaystation });
     }
   });
   if(tempPads.length !== gamePad.pads.length) {
@@ -32,11 +36,11 @@ gamePad.checkGamepads = () => {
     const gPad = gPads[pad.gPadIndex];
     try { 
       pad.a0 = -gPad.axes[0];
-      if(pad.name.includes('Xbox 360')) {
+      if(pad.isXbox || pad.isPlaystation) {
         pad.a1 = gPad.buttons[7].value;
         pad.a2 = gPad.buttons[6].value;
       }
-      else if(pad.name.includes('Driving Force')) {
+      else if(pad.isWheel) {
         if(gPad.axes[1] <= 0) {
           pad.a1 = gPad.axes[1] * -1.5;
           if(pad.a1 > 1)
@@ -65,6 +69,27 @@ gamePad.checkGamepads = () => {
   window.requestAnimationFrame(gamePad.checkGamepads);
 }
 gamePad.checkGamepads();
+
+gamePad.isWheel = (pad) => {
+  const names = ['driving force', 'g29', 't150', 't300', 'g923'];
+  if(names.some(name => pad.id.toLowerCase().includes(name)))
+     return true;
+  return false
+}
+
+gamePad.isPlaystation = (pad) => {
+  const names = ['dualshock', 'dualsense', 'ps2', 'ps3', 'ps4', 'ps5', 'playstation', 'horipad mini'];
+  if(names.some(name => pad.id.toLowerCase().includes(name)))
+     return true;
+  return false
+}
+
+gamePad.isXbox = (pad) => {
+  const names = ['xbox'];
+  if(names.some(name => pad.id.toLowerCase().includes(name)))
+     return true;
+  return false
+}
 
 gamePad.getPads = () => {
   return gamePad.pads;
