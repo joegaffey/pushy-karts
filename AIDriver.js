@@ -243,8 +243,8 @@ export default class AIDriver {
   getBoxDistances() {
     const boxDistances = [];
     this.car.boxes.forEach(box => {
-      const distance = this.carPosition.distanceTo(box.position);
-      boxDistances.push({distance: distance, box: box});
+      const distance = this.carPosition.distanceTo(box.mesh.position);
+      boxDistances.push({distance: distance, box: box.mesh});
     });
     boxDistances.sort((a, b) => a.distance - b.distance);
     return boxDistances;

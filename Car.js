@@ -226,6 +226,20 @@ export default class Car {
     bounds.max.y = 100;
     return bounds;
   }
+  
+  destroy() {
+    this.chassisMesh.removeFromParent();
+    this.zone.mesh.removeFromParent();
+    Ammo.destroy(this.zone.body);
+    this.boxes.forEach(box => {
+      box.mesh.removeFromParent();
+      Ammo.destroy(box.body);
+    });
+    this.wheelMeshes.forEach(wheel => {
+      wheel.removeFromParent();
+    });
+    Ammo.destroy(this.vehicle);
+  }
 
   // Sync keybord actions and physics and graphics
   sync(actions) {
