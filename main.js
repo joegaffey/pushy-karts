@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'orbitControls';
 import { VRButton } from 'VRButton';
 
+import config from 'Config';
 import gamePad from 'Gamepad';
 import audio from 'Audio';
 import Car from 'Car';
@@ -60,8 +61,8 @@ const carsInfo = [
 
 let platform, groundBox;
 
-const aiServer = new URLSearchParams(window.location.search).get('aiServerUrl');
-const aiServerUrl = aiServer || 'pushy-ai.glitch.me';
+const aiServerUrl = new URLSearchParams(window.location.search).get('aiServerUrl') || config.aiServerUrl;
+const aiServerProtocol = new URLSearchParams(window.location.search).get('protocol') || config.aiServerProtocol;
 
 // Keybord actions
 const keyActions = [
@@ -111,7 +112,7 @@ const timerEl = document.getElementById('timer');
 async function updateAIOptions() {
   let aiOptions = '';
   try {
-    const response = await fetch('https://' + aiServerUrl + '/ai', {
+    const response = await fetch(aiServerProtocol + '://' + aiServerUrl + '/ai', {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
@@ -153,7 +154,7 @@ function updateGamepads() {
 }
 
 async function log(message) {
-  const response = await fetch('https://' + aiServerUrl + '/logs', {
+  const response = await fetch(aiServerProtocol + '://' + aiServerUrl + '/logs', {
     method: 'POST',
     headers: {
       "Access-Control-Allow-Origin": "*",
