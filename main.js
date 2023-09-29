@@ -31,7 +31,7 @@ let solver;
 let physicsWorld;
 let cbContactResult;      
 
-const syncList = [];
+let syncList = [];
 let time = 0;
 const objectTimePeriod = 3;
 let timeNextSpawn = time + objectTimePeriod;
@@ -46,6 +46,7 @@ let remoteAI = {};
 let externalAI = {};
 let aiCars = [];
 let playerCars = [];
+let platformParts = [];
 
 let cars = [];
 let cameras = [];
@@ -76,7 +77,7 @@ const keyActions = [
     "KeyS":'reversing',
     "KeyA":'left',
     "KeyD":'right'
-  }, 
+  },
   {
     "KeyI":'acceleration',
     "KeyK":'reversing',
@@ -274,17 +275,17 @@ function initScene() {
   
   controls = new OrbitControls(camera, renderer.domElement);
 
-  var ambientLight = new THREE.AmbientLight(0x444444, Math.PI / 2)
+  const ambientLight = new THREE.AmbientLight(0x444444, Math.PI / 2)
   scene.add(ambientLight);
 
-  var dirLight = new THREE.DirectionalLight(0xffffff, Math.PI);
+  const dirLight = new THREE.DirectionalLight(0xffffff, Math.PI);
   dirLight.position.set(50, 50, -50);
   dirLight.castShadow = true;
   dirLight.shadow.mapSize.set(2048, 2048);
   dirLight.shadow.camera.zoom = 0.1;
   scene.add(dirLight);
   
-  var dirLight1 = new THREE.DirectionalLight(0xffffff, Math.PI / 2);
+  const dirLight1 = new THREE.DirectionalLight(0xffffff, Math.PI / 2);
   dirLight1.position.set(0, 50, 0);
   scene.add(dirLight1);
 
@@ -397,6 +398,7 @@ function initPlayers(pCars) {
 function getAIDynamicWorldState(ai) {
   const objects = [];
   ai.car.boxes.forEach((aiBox, i) => {
+    aiBox = aiBox.mesh;
     const box = {
       id: i + 1,
       type: 'box',
@@ -485,51 +487,52 @@ function getAIStaticWorldState(ai) {
 
 function startRenderer() {
   renderer.setAnimationLoop(() => {
+    
+    if(levelComplete)
+      return;
+      
+    const dt = clock.getDelta();
 
-    var dt = clock.getDelta();
+    for (let i = 0; i < syncList.length; i++)
+      syncList[i](dt);
 
-    if(!levelComplete) {
-      for (var i = 0; i < syncList.length; i++)
-        syncList[i](dt);
+    players.forEach(p => {  
+      p.updateActions();
+      p.car.sync(p.actions); 
+    });
 
-      players.forEach(p => {  
-        p.updateActions();
-        p.car.sync(p.actions); 
-      });
+    aiDrivers.forEach(ai => { 
+      if(ai.isRemote) {
+        const state = {
+          event: 'dynamicState',
+          objects: getAIDynamicWorldState(ai)
+        };        
+        ai.sendDynamic(state);
+      }        
+      else 
+        ai.step();
+      ai.car.sync(ai.actions);
+      if(ai.actions['reset'])
+        restart();
+    });
 
-      aiDrivers.forEach(ai => { 
-        if(ai.isRemote) {
-          const state = {
-            event: 'dynamicState',
-            objects: getAIDynamicWorldState(ai)
-          };        
-          ai.sendDynamic(state);
-        }        
-        else 
-          ai.step();
-        ai.car.sync(ai.actions);
-        if(ai.actions['reset'])
-          restart();
-      });
+    physicsWorld.stepSimulation(dt, 10);
+    detectCollision();
+    controls.update(dt);
 
-      physicsWorld.stepSimulation(dt, 10);
-      detectCollision();
-      controls.update(dt);
-
-      cars.forEach(car => {
-        if(car) {
-          let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes);
-          if(newScore !== car.score) {
-            car.score = newScore;
-            car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
-            if(car.score === car.boxes.length) {
-              endLevel();
-              return;
-            }
+    cars.forEach(car => {
+      if(car) {
+        let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes.map(box => box.mesh));
+        if(newScore !== car.score) {
+          car.score = newScore;
+          car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
+          if(car.score === car.boxes.length) {
+            endLevel();
+            return;
           }
         }
-      }); 
-    }
+      }
+    }); 
 
     // Attempt at a dynamic multi-tracking camera
     // const center = cars[0].chassisMesh.position;
@@ -544,7 +547,32 @@ function startRenderer() {
   });
 }
 
+
+/** Doesn't work
+function reset() {
+  console.log('Reset!');  
+  syncList = [];
+  endTimer();
+  levelComplete = true;
+  cars.forEach(car => {
+    car.destroy();
+  });
+  platformParts.forEach(part => {
+    part.mesh.removeFromParent();
+    Ammo.destroy(part.body);
+  });
+  platformParts = [];
+  cars = [];
+  initPlatform();
+  initCars();
+  initZones();
+  initBoxes();
+  startTimer();
+  levelComplete = false;
+}**/
+ 
 function restart() {
+  console.log('Restart!');  
   endTimer();
   levelComplete = true;
   destroy();
@@ -662,11 +690,9 @@ function nextCamera() {
   if(currentCam === cameras.length)
     currentCam = 0;
   
-  console.log(renderer.xr)
-  
-  renderer.xr.getCamera().position.copy(cameras[currentCam].position);
-  if(cameras[currentCam].target)
-    renderer.xr.getCamera().lookAt(cameras[currentCam].target);
+  // renderer.xr.getCamera().position.copy(cameras[currentCam].position);
+  // if(cameras[currentCam].target)
+  //   renderer.xr.getCamera().lookAt(cameras[currentCam].target);
 }
 
 function createBox(pos, quat, w, l, h, mass, friction, material) {
@@ -724,16 +750,18 @@ function createBox(pos, quat, w, l, h, mass, friction, material) {
 }
 
 function initPlatform() {
-
   const pSize = level.platform.size;
   const pPos = level.platform.position;
   groundBox = createBox(new THREE.Vector3(pPos.x, pPos.y, pPos.z), ZERO_QUATERNION, pSize.x, pSize.y, pSize.z, 0, 2);
+  platformParts.push(groundBox);
+  
   if(level.platform.ramps) {
     level.platform.ramps.forEach(ramp => {
       const quaternion = new THREE.Quaternion(0, 0, 0, 1);
       quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), ramp.angle.x);
       const rampBox = createBox(new THREE.Vector3(ramp.position.x, ramp.position.y, ramp.position.z), 
                                 quaternion, ramp.size.x, ramp.size.y, ramp.size.z, 0);
+      platformParts.push(rampBox);
     });
   }
 
@@ -741,6 +769,7 @@ function initPlatform() {
     level.platform.walls.forEach(wall => {
       const pWall = wall.position;
       const wallBody = createBox(new THREE.Vector3(pWall.x, pWall.y, pWall.z), ZERO_QUATERNION, wall.size.x, wall.size.y, wall.size.z, 0, 2);
+      platformParts.push(wallBody);
       wallBody.body.tag = 'wall';
     });
   }
@@ -803,7 +832,7 @@ function initBoxes() {
                                                 bPos.z), 
                               ZERO_QUATERNION, size, size, size, 10, null, material);
         box.body.tag = 'gameBox';
-        car.boxes.push(box.mesh);
+        car.boxes.push(box);
       }
       xPos++;
     }
@@ -847,13 +876,60 @@ function initInfo() {
   document.querySelector('#info').innerHTML = text;
 }
 
+/*
+ const dispose = (e) => {           
+
+    // dispose geometries and materials in scene
+    sceneTraverse(scene, o => {
+
+        if (o.geometry) {
+            o.geometry.dispose()
+            console.log("dispose geometry ", o.geometry)                        
+        }
+
+        if (o.material) {
+            if (o.material.length) {
+                for (let i = 0; i < o.material.length; ++i) {
+                    o.material[i].dispose()
+                    console.log("dispose material ", o.material[i])                                
+                }
+            }
+            else {
+                o.material.dispose()
+                console.log("dispose material ", o.material)                            
+            }
+        }
+    })          
+
+    scene = null
+    camera = null
+    renderer && renderer.renderLists.dispose()
+    renderer = null
+
+    addBtn.removeEventListener("click", addMeshes)
+    disposeBtn.removeEventListener("click", dispose)
+
+    console.log("Dispose!")
+}
+ */
+
 function destroy() { 
   Ammo.destroy(physicsWorld);
   Ammo.destroy(solver);
   Ammo.destroy(dispatcher);
   Ammo.destroy(collisionConfiguration);
-
-  scene = new THREE.Scene();
+  
+  scene.traverse(obj => {
+    disposeNode(obj);
+  });
+  scene = null;
+  
+  renderer.resetState();
+  renderer.forceContextLoss();
+  renderer.context = null;
+  renderer.domElement = null;
+  renderer && renderer.renderLists.dispose();
+  renderer = null;
   
   players = [];
   aiDrivers = [];  
@@ -863,6 +939,27 @@ function destroy() {
   cars = [];
   cameras = [];
   currentCam = 0;
+}
+
+function disposeNode(node) {
+  if (node instanceof THREE.Mesh) {
+    const geometry = node.geometry;
+    if (geometry) {
+      geometry.dispose();
+    }
+
+    const material = node.material;
+    if (material) {
+      if (Array.isArray(material)) {
+        for (let i = 0, l = material.length; i < l; i++) {
+          const m = material[i];
+          m.dispose();
+        }
+      } else {
+        material.dispose();
+      }
+    }
+  }
 }
 
 function init() {
@@ -918,7 +1015,7 @@ function start() {
     init();
   }
   else {
-    Ammo().then((Ammo) => {   
+    Ammo().then((Ammo) => {
       ammoReady = true;
       init();
     });
