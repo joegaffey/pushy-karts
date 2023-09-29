@@ -200,11 +200,11 @@ function endLevel(reason) {
   renderScores(scoresEl);
   renderWinner(levelWinnerEl);
   levelDialogEl.showModal();
-  let scores = '';
+  let scoreArr = [];
   cars.filter(n => n).forEach(car => {
-    scores += car.info.name + ':' + car.info.score;
+    scoreArr.push({ car: car.info.name, score: car.info.score });
   });
-  log(scores);
+  log({ scores: scoreArr });
 }
 
 restartGameButtonEl.onclick = () => {
