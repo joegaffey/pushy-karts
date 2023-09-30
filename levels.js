@@ -4,9 +4,10 @@ const levels = [
     maxCars: 4,
     difficulty: "Easy",
     boxes: {
-      width: 4,
+      size: 1,
+      stacks: 1,
       height: 10,
-      spacing: 4,
+      spacing: 3,
       position: { x: 0, y: 0, z: 0 },
     },
     cars: {
@@ -41,9 +42,10 @@ const levels = [
     maxCars: 4,
     difficulty: "Easy",
     boxes: {
-      width: 8,
+      size: 1,
+      stacks: 2,
       height: 6,
-      spacing: 1.25,
+      spacing: 2,
       position: { x: 0, y: 0, z: 10 },
     },
     cars: {
@@ -85,8 +87,10 @@ const levels = [
     maxCars: 4,
     difficulty: "Medium",
     boxes: {
-      width: 8,
-      height: 6,
+      size: 1,
+      stacks: 2,
+      height: 8,
+      spacing: 1.5,
       position: { x: 0, y: 0, z: 0 },
     },
     cars: {
@@ -103,8 +107,10 @@ const levels = [
     maxCars: 4,
     difficulty: "Hard",
     boxes: {
-      width: 8,
-      height: 6,
+      size: 1,
+      stacks: 2,
+      height: 8,
+      spacing: 1.5,
       position: { x: 0, y: 0, z: 10 },
     },
     cars: {

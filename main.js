@@ -203,6 +203,7 @@ function endLevel(reason) {
   let scoreArr = [];
   cars.filter(n => n).forEach(car => {
     scoreArr.push({ car: car.info.name, score: car.info.score });
+    car.info.score = 0;
   });
   log({ scores: scoreArr });
 }
@@ -813,35 +814,38 @@ function createZone(x, z, width, length, color) {
 }
 
 function initBoxes() {
-  const size = .75;    
-  const nw = level.boxes.width;
-  const nh = level.boxes.height;
-  const bPos = level.boxes.position;
-  let spacing = size;
+  const size = level.boxes.size;
+  const stacks = level.boxes.stacks;
+  const height = level.boxes.height;
+  const boxesPos = level.boxes.position;
+
+  let spacing = size + 0.5;
   if(level.boxes.spacing)
     spacing = level.boxes.spacing;
   
-  let xPos = 0;
-
-  for (let j = 0; j < nw; j++) {
-    let car = cars[j % cars.length];
-    if(car) {
-      for (let i = 0; i < nh; i++) {
-        let material = car.chassisMesh.material;
-        const box = createBox(new THREE.Vector3(bPos.x + (spacing * xPos) - ((nw - 1) * spacing / 2), 
-                                                bPos.y + size * i,
-                                                bPos.z), 
-                              ZERO_QUATERNION, size, size, size, 10, null, material);
-        box.body.tag = 'gameBox';
-        car.boxes.push(box);
-      }
-      xPos++;
+  const rCars = cars.filter(n => n);
+  const stacksArr = [];
+  rCars.forEach((car, n) => {
+    for(let i = 0; i < stacks; i++) {
+      stacksArr.push(car);
     }
-  }
+  });
+
+  let length = (stacksArr.length + 1) * spacing;
+
+  stacksArr.forEach((car, n) => {
+    const material = car.chassisMesh.material;
+    const xPosition = boxesPos.x - (length / 2) + spacing * (n + 1);
+    for(let j = 0; j < height; j++) {
+      const position = new THREE.Vector3(xPosition, boxesPos.y + size * j, boxesPos.z);
+      const box = createBox(position, ZERO_QUATERNION, size, size, size, 10, null, material);
+      box.body.tag = 'gameBox';
+      car.boxes.push(box);
+    }
+  });
 }
 
 function getLabel(text, color, size) {
-
   const texture = getTextTexture(text, color, size, size + 20, size);
   const material = new THREE.MeshBasicMaterial({
     map : texture,
@@ -854,7 +858,6 @@ function getLabel(text, color, size) {
 }
 
 function getTextTexture(text, color, size, width, height) {
-
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = width;
@@ -876,43 +879,6 @@ function initInfo() {
   });
   document.querySelector('#info').innerHTML = text;
 }
-
-/*
- const dispose = (e) => {           
-
-    // dispose geometries and materials in scene
-    sceneTraverse(scene, o => {
-
-        if (o.geometry) {
-            o.geometry.dispose()
-            console.log("dispose geometry ", o.geometry)                        
-        }
-
-        if (o.material) {
-            if (o.material.length) {
-                for (let i = 0; i < o.material.length; ++i) {
-                    o.material[i].dispose()
-                    console.log("dispose material ", o.material[i])                                
-                }
-            }
-            else {
-                o.material.dispose()
-                console.log("dispose material ", o.material)                            
-            }
-        }
-    })          
-
-    scene = null
-    camera = null
-    renderer && renderer.renderLists.dispose()
-    renderer = null
-
-    addBtn.removeEventListener("click", addMeshes)
-    disposeBtn.removeEventListener("click", dispose)
-
-    console.log("Dispose!")
-}
- */
 
 function destroy() { 
   Ammo.destroy(physicsWorld);
