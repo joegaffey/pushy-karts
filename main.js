@@ -190,11 +190,12 @@ nextLevelButtonEl.onclick = () => {
   levelSelected++;
   if(levelSelected >= levels.length)
     endGame();
-  else 
+  else
     restart();
 }
 
 function endLevel(reason) {
+  audio.play('endlevel');
   endTimer();
   levelComplete = true;
   renderScores(scoresEl);
@@ -526,6 +527,8 @@ function startRenderer() {
       if(car) {
         let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes.map(box => box.mesh));
         if(newScore !== car.score) {
+          if(newScore > car.score)
+            audio.play('score');
           car.score = newScore;
           car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
           if(car.score === car.boxes.length) {
@@ -614,29 +617,31 @@ function setupContactResultCallback() {
       // console.log('rb0.tag', rb0.tag)
       // console.log('rb1.tag', rb1.tag)
       if(rb1.tag && rb1.tag === 'chassis') {
-        audio.play('carhit', force);
+        if(force > 0.02) audio.play('carhit', force);
         if(rb0.car.ai)
           rb0.car.ai.crashCar();
         if(rb1.car.ai)
           rb1.car.ai.crashCar();
       }
       else if(rb1.tag === 'wall') {
+        if(force > 0.02) audio.play('wallhit', force);
         if(rb0.car.ai) {
           rb0.car.ai.crashWall();
         }
       }
       else if(rb0.tag === 'wall') {
+        if(force > 0.02) audio.play('wallhit', force);
         if(rb1.car.ai) {
           rb1.car.ai.crashWall();
         }
       }
       else if(rb1.tag === 'gameBox') {
-        // audio.play('boxhit', force);
+        if(force > 0.05) audio.play('boxhit', force);
         rb0.car.boxHits++;
       }
       else if(rb0.tag === 'gameBox') {
+        if(force > 0.05) audio.play('boxhit', force);
         rb1.car.boxHits++;
-        console.log(rb1.car.boxHits)
       }
     }
   }
