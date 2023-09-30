@@ -247,6 +247,9 @@ export default class Car {
     if(!this.vehicle)
       return;
     this.speed = this.vehicle.getCurrentSpeedKmHour();
+    
+    if(this.engine)
+      this.engine.setSpeed(this.speed);
 
     // speedometer.innerHTML =
     //   (speed < 0 ? "(R) " : "") + Math.abs(speed).toFixed(1) + " km/h";

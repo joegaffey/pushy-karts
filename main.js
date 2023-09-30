@@ -64,6 +64,8 @@ let platform, groundBox;
 const aiServerUrl = new URLSearchParams(window.location.search).get('aiServerUrl') || config.aiServerUrl;
 const aiServerProtocol = new URLSearchParams(window.location.search).get('protocol') || config.aiServerProtocol;
 
+audio.on = config.audio;
+
 // Keybord actions
 const keyActions = [
   {
@@ -195,6 +197,10 @@ nextLevelButtonEl.onclick = () => {
 }
 
 function endLevel(reason) {
+  cars.filter(n => n).forEach(car => {
+    if(car.engine)
+      car.engine.stop();
+  });
   audio.play('endlevel');
   endTimer();
   levelComplete = true;
@@ -380,6 +386,8 @@ function initCars() {
       car.camera.position.z = -3;
       car.camera.rotation.y = Math.PI;
       car.camera.rotation.x = 0.25;
+      
+      car.engine = audio.getEngine();
             
       cameras.push(car.camera);
       
@@ -997,3 +1005,12 @@ function start() {
 const startButtonEl = document.querySelector('#startButton');
 startButtonEl.innerHTML = 'Go Push!';
 startButtonEl.disabled = false;
+
+document.addEventListener("visibilitychange", event => {
+  if (document.visibilityState !== "visible") {
+    cars.filter(n => n).forEach(car => {
+      if(car.engine)
+        car.engine.stop();
+    });
+  }
+})
