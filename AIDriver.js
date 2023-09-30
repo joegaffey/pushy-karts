@@ -20,12 +20,12 @@ export default class AIDriver {
     this.setTarget();
     
     // Customize the AI via these properties 
-    this.maxOffsetAngle = 10;   // Maximum angle offset to target before driver corrects
-    this.backoffTimeout = 2000; // Wait to end a backoff
-    this.minTargetDistance = 5; // Arrival distance from trget 
-    this.targetBorder = 6;      // Min distance from platformedge to place targets
-    this.boxStopDistance = 10;  // Z distance to stop before a box 
-    this.turnAroundAngle = 110; // Max angle to target before AI turns around 
+    this.maxOffsetAngle = 10;    // Maximum angle offset to target before driver corrects
+    this.backoffTimeout = 2000;  // Wait to end a backoff
+    this.minTargetDistance = 5;  // Arrival distance from trget 
+    this.targetBorder = 8;      // Min distance from platformedge to place targets
+    this.boxStopDistance = 10;   // Z distance to stop before a box 
+    this.turnAroundAngle = 110;  // Max angle to target before AI turns around 
     
     // window.ai = this; // Debugging purposes
   }
@@ -219,11 +219,11 @@ export default class AIDriver {
         
     if(this.lastTarget.name === 'zone') {
       let x = this.bounds.min.x + this.targetBorder;
-      let y = this.bounds.min.z + this.targetBorder;
+      if(this.carPosition.x > 0)
+        x = this.bounds.max.x - this.targetBorder;
+      let z = this.bounds.min.z + this.targetBorder;
       
-      x = this.carPosition.x;
-        
-      this.target = new THREE.Vector3(x, 0, y);
+      this.target = new THREE.Vector3(x, 0, z);
       this.target.name = 'corner';
     }
     else if(this.lastTarget.name === 'corner' || this.lastTarget.name === 'center') {
