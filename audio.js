@@ -11,6 +11,7 @@ audio.sounds = {
   carhit: { audio: new Audio(path + 'hit3.wav'), volume: 4 },
   score: { audio: new Audio(path + 'score1.wav'), volume: 1 },
   endlevel: { audio: new Audio(path + 'endlevel1.wav'), volume: 1 }, // A A FF G GF D
+  start: { audio: new Audio(path + 'start1.wav'), volume: 1 }, // D   D   D    G
 };
 
 audio.play = function (sound, vol = 1) {

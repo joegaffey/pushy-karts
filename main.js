@@ -935,6 +935,7 @@ function disposeNode(node) {
 }
 
 function init() {
+  audio.play('start');
   initPhysics();
   initScene();
 
@@ -949,7 +950,7 @@ function init() {
   initKeyEvents();
   initInfo();
   startRenderer();
-  
+
   startTimer();
 }
 
