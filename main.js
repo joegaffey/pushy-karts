@@ -209,7 +209,7 @@ function endLevel(reason) {
   levelDialogEl.showModal();
   let scoreArr = [];
   cars.filter(n => n).forEach(car => {
-    scoreArr.push({ car: car.info.name, score: car.info.score });
+    scoreArr.push({ car: car.info.name, score: car.info.score, isAI: ('ai' in car) });
     car.info.score = 0;
   });
   log({ scores: scoreArr });
@@ -535,8 +535,10 @@ function startRenderer() {
       if(car) {
         let newScore = getObjectsInsideCount(car.zone.mesh, car.boxes.map(box => box.mesh));
         if(newScore !== car.score) {
-          if(newScore > car.score)
+          if(newScore > car.score) {
             audio.play('score');
+            log({ point: { car: car.info.name, isAI: ('ai' in car)}});
+          }
           car.score = newScore;
           car.zone.label.material.map = getTextTexture(newScore, 'white', 256, 276, 256);
           if(car.score === car.boxes.length) {
@@ -624,15 +626,27 @@ function setupContactResultCallback() {
     if(rb0.tag === 'chassis' || rb1.tag === 'chassis') {
       // console.log('rb0.tag', rb0.tag)
       // console.log('rb1.tag', rb1.tag)
-      if(rb1.tag && rb1.tag === 'chassis') {
-        if(force > 0.02) audio.play('carhit', force);
+      if(rb0.tag === 'chassis' && rb1.tag === 'chassis') {
+        if(force > 0.02) {
+          audio.play('carhit', force);
+          log({ crash: { 
+              car1: { name: rb0.car.info.name, isAI: ('ai' in rb0.car) },
+              car2: { name: rb1.car.info.name, isAI: ('ai' in rb1.car) }
+            }
+          });
+        }
         if(rb0.car.ai)
           rb0.car.ai.crashCar();
         if(rb1.car.ai)
           rb1.car.ai.crashCar();
       }
       else if(rb1.tag === 'wall') {
-        if(force > 0.02) audio.play('wallhit', force);
+        if(force > 0.02) {
+          if(rb0.car) {
+            audio.play('wallhit', force);
+            log({ wallHit: { car: rb0.car.info.name, isAI: ('ai' in rb0.car) }});
+          }
+        }
         if(rb0.car.ai) {
           rb0.car.ai.crashWall();
         }
