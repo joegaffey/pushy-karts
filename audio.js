@@ -16,10 +16,11 @@ audio.sounds = {
 audio.play = (sound, vol = 1) => {
   if(!audio.on)
     return;
-  if(vol > 1)
-    vol = 1;
   const snd = audio.sounds[sound].audio.cloneNode();
-  snd.volume = audio.sounds[sound].volume * vol;
+  let newVol = audio.sounds[sound].volume * vol;
+  if(newVol > 1)
+  newVol = 1;
+    snd.volume = newVol;
   snd.play();
 };
 
