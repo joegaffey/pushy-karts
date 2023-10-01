@@ -1,6 +1,5 @@
 const audio = {};
 audio.context = new AudioContext();
-audio.on = true;
 
 const path = './audio/';
 
@@ -9,17 +8,12 @@ audio.sounds = {
   boxhit: { audio: new Audio(path + 'hit1.wav'), volume: 1.5 },
   wallhit: { audio: new Audio(path + 'hit2.wav'), volume: 2.5 },
   carhit: { audio: new Audio(path + 'hit3.wav'), volume: 4 },
-<<<<<<< HEAD
   score: { audio: new Audio(path + 'score1.wav'), volume: 1 },
   endlevel: { audio: new Audio(path + 'endlevel1.wav'), volume: 1 }, // A A FF G GF D
   start: { audio: new Audio(path + 'start1.wav'), volume: 1 }, // D   D   D    G
-=======
-  score: { audio: new Audio(path + 'score1.wav'), volume: 0.5 },
-  endlevel: { audio: new Audio(path + 'endlevel1.wav'), volume: 0.5 }, // A A FF G GF D
->>>>>>> 391bf45319a919e85c0fe16b382eeb108a65d918
 };
 
-audio.play = function (sound, vol = 1) {
+audio.play = (sound, vol = 1) => {
   if(!audio.on)
     return;
   const snd = audio.sounds[sound].audio.cloneNode();
