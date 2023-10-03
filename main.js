@@ -1021,11 +1021,12 @@ const startButtonEl = document.querySelector('#startButton');
 startButtonEl.innerHTML = 'Go Push!';
 startButtonEl.disabled = false;
 
-document.addEventListener("visibilitychange", event => {
-  if (document.visibilityState !== "visible") {
+document.addEventListener('visibilitychange', event => {
+  if (document.visibilityState !== 'visible') {
     cars.filter(n => n).forEach(car => {
-      if(car.engine)
+      if(car.engine) {
         car.engine.stop();
+      }
     });
   }
-})
+});
